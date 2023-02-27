@@ -1,0 +1,61 @@
+#! /usr/bin/vvp
+:ivl_version "13.0 (devel)" "(s20221226-107-g3612577b5)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision + 0;
+:vpi_module "/usr/lib/ivl/system.vpi";
+:vpi_module "/usr/lib/ivl/vhdl_sys.vpi";
+:vpi_module "/usr/lib/ivl/vhdl_textio.vpi";
+:vpi_module "/usr/lib/ivl/v2005_math.vpi";
+:vpi_module "/usr/lib/ivl/va_math.vpi";
+S_0x555771896bd0 .scope module, "and_gate_tb" "and_gate_tb" 2 1;
+ .timescale 0 0;
+v0x5557718a98b0_0 .var "a", 0 0;
+v0x5557718a9980_0 .var "b", 0 0;
+o0x7f4a29394078 .functor BUFZ 1, C4<z>; HiZ drive
+v0x5557718a9a50_0 .net "c", 0 0, o0x7f4a29394078;  0 drivers
+S_0x555771896d60 .scope module, "uut" "and_gate" 2 7, 3 8 0, S_0x555771896bd0;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "a";
+    .port_info 1 /INPUT 1 "b";
+    .port_info 2 /OUTPUT 1 "c";
+L_0x5557718a9b50 .functor AND 1, v0x5557718a98b0_0, v0x5557718a9980_0, C4<1>, C4<1>;
+v0x555771885da0_0 .net "a", 0 0, v0x5557718a98b0_0;  1 drivers
+v0x5557718a9610_0 .net "b", 0 0, v0x5557718a9980_0;  1 drivers
+v0x5557718a96d0_0 .net "c", 0 0, o0x7f4a29394078;  alias, 0 drivers
+v0x5557718a9770_0 .net "y", 0 0, L_0x5557718a9b50;  1 drivers
+    .scope S_0x555771896bd0;
+T_0 ;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x5557718a98b0_0, 0, 1;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x5557718a9980_0, 0, 1;
+    %delay 5, 0;
+    %vpi_call 2 16 "$display", "a=%b, b=%b, c=%b", v0x5557718a98b0_0, v0x5557718a9980_0, v0x5557718a9a50_0 {0 0 0};
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x5557718a98b0_0, 0, 1;
+    %pushi/vec4 1, 0, 1;
+    %store/vec4 v0x5557718a9980_0, 0, 1;
+    %delay 5, 0;
+    %vpi_call 2 20 "$display", "a=%b, b=%b, c=%b", v0x5557718a98b0_0, v0x5557718a9980_0, v0x5557718a9a50_0 {0 0 0};
+    %pushi/vec4 1, 0, 1;
+    %store/vec4 v0x5557718a98b0_0, 0, 1;
+    %pushi/vec4 0, 0, 1;
+    %store/vec4 v0x5557718a9980_0, 0, 1;
+    %delay 5, 0;
+    %vpi_call 2 24 "$display", "a=%b, b=%b, c=%b", v0x5557718a98b0_0, v0x5557718a9980_0, v0x5557718a9a50_0 {0 0 0};
+    %pushi/vec4 1, 0, 1;
+    %store/vec4 v0x5557718a98b0_0, 0, 1;
+    %pushi/vec4 1, 0, 1;
+    %store/vec4 v0x5557718a9980_0, 0, 1;
+    %delay 5, 0;
+    %vpi_call 2 28 "$display", "a=%b, b=%b, c=%b", v0x5557718a98b0_0, v0x5557718a9980_0, v0x5557718a9a50_0 {0 0 0};
+    %delay 5, 0;
+    %vpi_call 2 30 "$finish" {0 0 0};
+    %end;
+    .thread T_0;
+# The file index is used to find the file name in the following table.
+:file_names 4;
+    "N/A";
+    "<interactive>";
+    "hello_world_test.v";
+    "hello_world.v";
