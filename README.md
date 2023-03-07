@@ -1,4 +1,4 @@
-# Computer Architecture Project thing
+# REGISTER FILE
 
 
 Verilog basics.
