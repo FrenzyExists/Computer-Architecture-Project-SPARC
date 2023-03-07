@@ -1,9 +1,38 @@
-# REGISTER FILE
+# Computer Architecture Project
 
 
-Verilog basics.
+### Team members:
+- Victor Barriera
+- Angel L Garcia
+- Victor Blue
 
-These are notes from a YT video btw
+These are the documents design notes and other miscelaneous related to the final (and only) project of the course of Computer Architecture (ICOM [])
+
+## How to run this project
+
+It is important to first download Icarus Verilog for windows machines to either get Git Bash or WSL in order to execute bash scripts.
+
+After installing the necessary programs, clone this project and navigate to `project/scripts` and execute the `build.sh` script. This will build all the design components in a `build` folder located in the project folder. navigate to the build folder and in a terminal pointed at this directory type:
+
+```bash
+./<build-file>
+```
+
+This should execute the test file as well as the component that is being tested
+
+## Documentation
+
+The documentation of each component is located in `project/documentation`. You can also jump from here
+
+- [ALU](./project/documentation/alu.md)
+- [Operand Handler](./project/documentation/operand.md)
+- [Instruction Memory](./project/documentation/instruction-memory.md)
+- [Register File](./project/documentation/register.md)
+
+
+## Verilog basics.
+
+The following notes are not really from the project and were quick notes taken by the team members while learning verilog during Phase 1 of this project
 
 ### Things I have no idea what they are and should ask
 
