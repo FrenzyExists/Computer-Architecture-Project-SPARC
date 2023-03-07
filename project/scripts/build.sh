@@ -12,9 +12,68 @@ black_2="\033[0;90m"
 reset="\033[0m"
 white="\033[0;97m"
 
+version=("0.1" "Let Me Be Sad")
 
+welcome() {
+        printf "%b" "
+${yellow} _____         _ _            _____           _         _   
+${yellow}|  |  |___ ___|_| |___ ___   |  _  |___ ___  |_|___ ___| |_ 
+${blue}|  |  | -_|  _| | | . | . |  |   __|  _| . | | | -_|  _|  _|
+${magenta} \___/|___|_| |_|_|___|_  |  |__|  |_| |___|_| |___|___|_|  
+${magenta}                      |___|                |___|            
+${reset}
+
+»»» Team Players:
+    » ${yellow}Victor Barriera${reset}
+    » ${red}Angel L Garcia${reset}
+    » ${blue}Victor Blue${reset}
+
+${blue}version ${yellow}${version[0]}${magenta}: ${green}${version[1]}${reset}
+
+Requires
+ » bash v4.3+
+ » icarus verilog
+
+Options:
+   -h | --help        -> prints this section
+        --build-all   -> build all project components
+"
+    exit 1
+}
+
+build_all() {
+    if ! test -d "$current_dir/build"; then
+        mkdir "$current_dir/build"
+    fi
+
+    # TODO: Convert this into a dictionary or an array for the sake of DRYness
+
+    printf "Building ALU"
+    iverilog -o "$current_dir/build/alu.vvp" "$current_dir/project/src/project-alu.v" "$current_dir/project/test/project-alu-tester.v"
+    printf "done"
+
+    printf "Building Source Operand2 Handler"
+    iverilog -o "$current_dir/build/operand.vvp" "$current_dir/project/src/project-operand.v" "$current_dir/project/test/project-operand-tester.v"
+    printf "done"
+
+    # Uncomment once these files are done
+    # printf "Building SPARC-focused Instruction Memory"
+    # iverilog -o "$current_dir/build/register-memory.vvp" "$current_dir/project/src/project-instruction-memory.v" "$current_dir/project/test/project-instruction-memory-tester.v"
+    # printf "done"
+}
+
+
+[ -z "$1" ] && welcome
 
 # Compile all verilog files
-
-iverilog -o  tb_module1.vvp ../modules/module1.v module1_tb.v
-iverilog -o tb_module2.vvp ../modules/module2.v module2_tb.v
+while test $# -gt 0; do
+    case "$1" in
+        -h | --help) 
+            welcome
+        ;;
+        --build-all)
+            build_all
+            exit
+        ;;
+    esac
+done
