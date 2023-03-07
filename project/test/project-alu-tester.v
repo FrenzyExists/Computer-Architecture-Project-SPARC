@@ -142,9 +142,6 @@ module mini_alu_tb;
     opcode = 4'b1111;
     #5 $display("Test case 16: Set output to negated B: a=%h, b=%h, output=%h", a, b, y);
     
-
-
-
-end
+    end
 
 endmodule

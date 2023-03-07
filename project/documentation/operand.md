@@ -13,25 +13,33 @@
 | 0 | 1 | 1 | 1 | Imm (sign extended)
 | 1 | 0 | 0 | 0 | R
 | 1 | 0 | 0 | 1 | Imm12-0 (sign extended)
-| 1 | 0 | 1 | 0 | 0b0000...000 ||R4-0
-| 1 | 0 | 1 | 1 | 0b0000...000 ||Imm4-0
+| 1 | 0 | 1 | 0 | 0b0000...000 \|\| R4-0
+| 1 | 0 | 1 | 1 | 0b0000...000 \|\| Imm4-0
 | 1 | 1 | 0 | 0 | R
 | 1 | 1 | 0 | 1 | Imm12-0 (sign extended)
 | 1 | 1 | 1 | 0 | R
 | 1 | 1 | 1 | 1 | Imm12-0 (sign extended)
 
 
-Yes, you will need to design a testbench to verify the functionality of your mini_alu and source_operand modules. In the testbench, you can generate input signals to the modules and compare the output signals with expected values.
+<!-- Yes, you will need to design a testbench to verify the functionality of your mini_alu and source_operand modules. In the testbench, you can generate input signals to the modules and compare the output signals with expected values.
 
-Regarding the registers, you can either use the Verilog reg data type to declare variables in your testbench or design separate register modules if necessary. The registers can be used to hold the input values for your modules and to compare the output values with expected results.
-
-
+Regarding the registers, you can either use the Verilog reg data type to declare variables in your testbench or design separate register modules if necessary. The registers can be used to hold the input values for your modules and to compare the output values with expected results. -->
 
 
+A Operand Handler is a combinatorial circuit, which means that it will use case statements and will not really depend of a clock to trigger. This handler is a fairly simple one, bellow is listed the inputs and outputs:
 
-En el diagrama de la página siguiente se muestra un diagrama de bloque y la tabla de la verdad del circuito que
-se debe implementar. Este es un circuito combinacional (el efecto de las entradas se puede manifestar en las
-salidas casi de manera instantánea). Según indica la tabla de la verdad, el “Handler” tiene como entradas un
-número de 32 bits (R), un número de 22 bits (Imm) y cuatro bits (IS) que corresponden a bits de una
-instrucción. El circuito tiene como salida un número N de 32 bits cuyo su valor depende de los inputs según
-indica la tabla de la verdad. El símbolo || significa concatenación
+- `R` (*input*) **32bit** number
+- `Imm` (*input*) **22bit** number
+- `IS` (*input*) **4bit** number
+- `N` (*output*) **32bit** number
+
+`R` is a register number you input and `Imm` is uhh, no idea :)
+
+(ask professor what exactly is the purpose of this component)
+(also ask the professor what Imm suppose to be)
+
+The output `N` depends of the truth table from the inputs `R` and `Imm`
+
+The **4bit** output `IS` corresponds to an instruction bit, similar to the opcode in the ALU.
+
+We also learned that `||` in this context means concatenation. Neat!
