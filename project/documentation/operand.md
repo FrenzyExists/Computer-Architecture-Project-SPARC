@@ -1,21 +1,4 @@
-| OP  | Out | Flags |
-| --- | --- | ----- |
-| 0000| A+B | Z N C V|
-| 0001| A+B+CIN | Z N C V|
-| 0010| A-B | Z N C V|
-| 0011| A-B-CIN | Z N C V|
-| 0100| A and B | Z N |
-| 0101| A or B | Z N |
-| 0110| A xor B | Z N |
-| 0111| A xnor B | Z N |
-| 1000| A and (not B) | Z N |
-| 1001| A or (not B) | Z N |
-| 1010| shift left logical (A) B positions | none |
-| 1011| shift right logical (A) B positions | none |
-| 1100| shift right arithmetic (A) B positions | none |
-| 1101| A | none |
-| 1110| B | none |
-| 1111| not B | none |
+# Design of the Operand2 Handler
 
 
 |I31 | I30 | I24  | I13 | N
@@ -41,3 +24,14 @@
 Yes, you will need to design a testbench to verify the functionality of your mini_alu and source_operand modules. In the testbench, you can generate input signals to the modules and compare the output signals with expected values.
 
 Regarding the registers, you can either use the Verilog reg data type to declare variables in your testbench or design separate register modules if necessary. The registers can be used to hold the input values for your modules and to compare the output values with expected results.
+
+
+
+
+
+En el diagrama de la página siguiente se muestra un diagrama de bloque y la tabla de la verdad del circuito que
+se debe implementar. Este es un circuito combinacional (el efecto de las entradas se puede manifestar en las
+salidas casi de manera instantánea). Según indica la tabla de la verdad, el “Handler” tiene como entradas un
+número de 32 bits (R), un número de 22 bits (Imm) y cuatro bits (IS) que corresponden a bits de una
+instrucción. El circuito tiene como salida un número N de 32 bits cuyo su valor depende de los inputs según
+indica la tabla de la verdad. El símbolo || significa concatenación
