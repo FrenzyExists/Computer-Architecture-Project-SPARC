@@ -18,7 +18,7 @@ haga este modulo que pidio
 module source_operand (
     input [31:0] R,
     input [21:0] Imm,
-    input reg [31:0] IS,
+    input [31:0] IS,
     output reg [31:0] N
 );
 
