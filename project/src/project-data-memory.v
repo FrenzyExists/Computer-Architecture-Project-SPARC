@@ -1,14 +1,14 @@
-module RAM (
+module ram_512x8 (
     input [8:0] Address,
     input clock,
     input R_W,
     input [1:0] Size,
-    input SignExtend,
+    input [1:0] SignExtend,
     input [31:0] DataIn,
     output reg [31:0] DataOut
 );
 
-reg [7:0] Mem [0:511]; // 512 locations of 8bits
+reg [7:0] Mem[0:511]; // 512 locations of 8bits
 
 always @(posedge clock) begin
     if (R_W) begin
