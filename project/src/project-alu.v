@@ -34,11 +34,11 @@ module mini_alu (
                 flags = {y[31], y == 0};
             end
             4'b0110: begin
-                y = a xor b;
+                y = a ^ b;
                 flags = {y[31], y == 0};
             end
             4'b0111: begin
-                y = a xnor b;
+                y = ~(a ^ b);
                 flags = {y[31], y == 0};
             end
             4'b1000: begin
@@ -67,6 +67,6 @@ module register_4bit (
     input LE, Clr, Clk
     );
     always @ (posedge Clk)
-    if (Clr) Q <= 4’b0000 ;
+    if (Clr) Q <= 4'b000;
     else if (LE) Q <= D;
 endmodule
