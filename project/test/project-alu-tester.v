@@ -21,7 +21,7 @@ module mini_alu_tb;
 
   initial begin
   
-  $display("Test 1: A: positive, B: negative, no carry \n");
+  $display("Test 1\n");
   #10
     
     a = 32'b00000000000000000000000000000001;
@@ -31,9 +31,7 @@ module mini_alu_tb;
     repeat (15) #20 opcode = opcode + 4'b0001;
 
     #100
-    $display("\n");
-
-    #3 $display("Test 2: negative number and negative number");
+    #3 $display("\nTest 2\n");
     a = 32'b00000000000000000000000000000000;
     b = 32'b00000000000000000000000000000001;
     cin = 1'b0;
@@ -41,20 +39,17 @@ module mini_alu_tb;
     repeat (15) #20 opcode = opcode + 4'b0001;
 
     #100
-    $display("\n");
-
-    #3 $display("Test 2: negative number and negative number");
+    
+    #3 $display("\nTest 3\n");
     a = 32'b01000000000000000000000000000000;
     b = 32'b01000000000000000000000000000000;
     cin = 1'b0;
     opcode = 4'b0000;
     repeat (15) #20 opcode = opcode + 4'b0001;
     
-
     #100
-    $display("\n");
 
-    #3 $display("Test 2: negative number and negative number");
+    #3 $display("\nTest 4\n");
     a = 32'b10000000000000000000000000001000;
     b = 32'b10000000000000000000000001000000;
     cin = 1'b0;
