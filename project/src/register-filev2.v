@@ -1,3 +1,7 @@
+//Register File de 32 registros de 32 bits y 3 puertos de salida.
+
+//Escrito por: Victor Hernandez (802-19-4188)
+
 module RegisterFile (output [31:0] PA, PB, PD, input [31:0] PW,  input [4:0] RW, RA, RB, RD, input LE, Clk);
     //Outputs: Puertos A, B y D
     //Inputs: Puerto de Entrada (PW), RW (Write Register) y LE (BinaryDecoder Selector y "load"), 
@@ -88,12 +92,12 @@ module test_RegisterFile;
         RA = 5'b00000;
         RB = 5'b11111;
         RD = 5'b11110;
-        PW = 32'b00000000000000000000000000010100;
-        RW = 5'b00000;
+        PW = 32'b00000000000000000000000000010100; //20
+        RW = 5'b00000; //0
 
         #1 //una unidad de tiempo para la estabilizacion de las señales
 
-        repeat (32) begin
+        repeat (32) begin //cada cuatro unidades de tiempo se debe incrementar por uno los valores de PW, RW, RA, RB y RD hasta que RA alcance el valor de 31.
         #4 Clk = ~Clk; //clock period
         RW = RW + 1;
         RA = RA + 1;
@@ -106,7 +110,7 @@ module test_RegisterFile;
     end
 
     initial begin   
-
+        // Se inicializa el reloj en cero a tiempo cero y luego debe cambiar de estado cada dos unidades de tiempo de manera perpetua.
         Clk = 0;
         LE = 1;
         forever #2 Clk = ~Clk;
@@ -129,6 +133,7 @@ endmodule
 
 //MULTIPLEXOR 32X1 - S and R0-R31 are 32bit inputs. Y is a 32bit output.
 //A case for S is used to select one of the R0-R31 and assign the output to Y.
+//We will be instantiating three of them due to it being a three port register file.
 
 module mux_32x1_32bit (output reg [31:0] Y, input [4:0] S, 
 input [31:0] R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15,
@@ -174,8 +179,8 @@ R16, R17, R18, R19, R20, R21, R22, R23, R24, R25, R26, R27, R28, R29, R30, R31);
 endmodule
 
 
-//BINARY DECODER - C is 5bit input and RF is 1bit input.
-//E is 32bit output and a function of C and RF.
+//BINARY DECODER - C is a 5bit input and RF is a 1bit input.
+//E is a 32bit output and a function of C and RF. 
 
 module binaryDecoder (output reg [31:0] E, input [4:0] C, input RF);
     always @ (*) begin
@@ -229,3 +234,18 @@ module register_32bit (output reg [31:0] Q, input [31:0] D, input Clk, Ld);
     always @ (posedge Clk)
         if(Ld) Q <= D;
 endmodule
+
+// Three Port Register File
+
+// Reading:
+
+// El contenido de un registro se coloca en un puerto de salida P cuando el número de registro se especifica 
+// en su correspondiente entrada de selección de registro R. Esta acción se lleva a cabo tan pronto como el 
+// número de registro se coloca en la entrada R correspondiente (es una acción asíncrona).
+
+// Writing:
+
+// Un número colocado en PW se escribirá en el registro especificado por la entrada RW, si y solo si, LE = 1 y 
+// el borde ascendente del reloj toma ritmo (esta es una acción sincrónica).
+
+// RA, RB, RC y RW son números de 5 bits PA, PB, PC y PW son números de 32 bits
