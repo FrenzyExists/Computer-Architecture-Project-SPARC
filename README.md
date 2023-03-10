@@ -4,7 +4,7 @@
 ### Team members:
 - Victor Barriera
 - Angel L Garcia
-- Victor Blue
+- Victor Hernandez
 
 These are the documents design notes and other miscelaneous related to the final (and only) project of the course of Computer Architecture (ICOM [])
 
