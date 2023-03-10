@@ -66,7 +66,6 @@ always @(*) begin
         // 4'b1101: N = {Imm[:], Imm[11:0]}; // sign extend Imm12-0 to 32 bits
         // 4'b1111: N = {20 {Imm[31]}, Imm[11:0]}; // sign extend Imm12-0 to 32 bits        
         // 4'b1001: begin
-        // if 
         // // check the Imm 13 bits (bit 21) if its 0 fill 0s else fill
         // N = {Imm[12:0], }
     endcase
