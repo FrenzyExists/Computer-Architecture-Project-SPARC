@@ -8,6 +8,7 @@ module RAM_Access;
     Address = 7'b0000000;
     while (!$feof(fi)) begin
     code = $fscanf(fi, "%d", data);
+    $display("A %d", data);
     ram1.Mem[Address] = data;
     Address = Address + 1;
     end

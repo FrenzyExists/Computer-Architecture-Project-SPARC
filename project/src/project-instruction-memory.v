@@ -20,7 +20,7 @@ module rom_precharge;
     );
 
     initial begin
-        fi = $fopen("input_file.txt","r");
+        fi = $fopen("test-file.txt","r");
         Address = 7'b0000000;
         while (!$feof(fi)) begin
             code = $fscanf(fi, "%d", data);
