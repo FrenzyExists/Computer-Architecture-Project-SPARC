@@ -1,0 +1,12 @@
+data en   0 = 10                   10
+data en   1 = 24                  110
+data en   2 = e8                  210
+data en   3 = 00                  310
+data en   4 = 01                  410
+data en   5 = 2e                  510
+data en   6 = e8                  610
+data en   7 = 10                  710
+data en   8 = 0a                  810
+data en   9 = 72                  910
+data en  10 = 00                 1010
+data en  11 = 00                 1110
