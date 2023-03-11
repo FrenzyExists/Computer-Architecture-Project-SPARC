@@ -1,5 +1,9 @@
 `timescale 1ns / 1ns
-`include "project/src/project-alu.v"
+
+// uncomment this so you only need to run the
+// tester module :D
+// `include "project/src/project-alu.v"
+`include "project-alu.v"
 
 module mini_alu_tb;
 
@@ -24,9 +28,11 @@ module mini_alu_tb;
   $display("Test 1\n");
   #10
     
-    a = 32'b00000000000000000000000000000001;
-    b = 32'b10111111111111111111111111111111;
-    cin = 1'b0;
+    //
+    a = 32'b11000000000000000000000000000001;
+    b = 32'b00000000000000000000000000000011;
+
+    cin = 1'b1;
     opcode = 4'b0000;
     repeat (15) #20 opcode = opcode + 4'b0001;
 
@@ -56,12 +62,34 @@ module mini_alu_tb;
     opcode = 4'b0000;
     repeat (15) #20 opcode = opcode + 4'b0001;
 
+    #100
+
+    #3 $display("\nTest 5\n");
+
+    a = 32'b00000000000000000000000000000001;
+    b = 32'b10111111111111111111111111111111;
+    cin = 1'b0;
+    opcode = 4'b0000;
+    repeat (15) #20 opcode = opcode + 4'b0001;
+
+    #100
+
+    #3 $display("\nTest 6\n");
+
+    // shift test
+    a = 32'b11000000000000000000000000000001;
+    b = 32'b10111111111111111111111111000011;
+    cin = 1'b0;
+    opcode = 4'b0000;
+    repeat (15) #20 opcode = opcode + 4'b0001;
+
+
 
     // if (y !== 32'h00000000 || flags !== 4'b1000) $error("Test failed for ADD operation with flags");
     end
     initial begin
     
     #10 $display("| opcode |      A     |      B     |      Y     | flag |");
-    #15 $monitor("| %b   | %d | %d | %d | %b |", opcode, a, b, y, flags);
+    #15 $monitor("| %b   | %b | %b | %b | %b |", opcode, a, b, y, flags);
     end
 endmodule

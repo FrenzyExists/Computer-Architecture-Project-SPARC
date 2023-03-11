@@ -1,11 +1,12 @@
 `timescale 1ns / 1ns
 `include "project/src/project-operand.v"
+// `include "project-operand.v"
 
 module operand_tb;
 
     reg [31:0] R;
     reg [21:0] Imm;
-    reg [31:0] IS;
+    reg [3:0] IS;
     wire [31:0] N;
 
     source_operand uut (
@@ -20,19 +21,23 @@ module operand_tb;
     initial begin
 
         R = 32'b11100000000000000000000000000011;
-        Imm = 21'b100110001000100010011;
+        Imm = 22'b1000110001000100010011;
 
-        IS = 32'b00000000000000000000000000000000;
         
-        #3 $display("               IS                |                 R                |              Imm                |               N");
-        for (i = 0 ; i < 16 ; i = i+1) #1 begin;
-            #15 $monitor("%b | %b | %b | %b", IS, R, Imm, N);
-            IS[31] = i[3]; 
-            IS[31] = i[2]; 
-            IS[24] = i[1];
-            IS[13] = i[0];
-        end
+        #3 $display("               IS                |                 R                |         Imm            |              N");
+        IS = 4'b0000;
+        repeat (15) #20 IS = IS + 4'b0001;
 
+        Imm = 22'b1000110000000100010011;
+        #3 $display(" ");
+        
+        
+        IS = 4'b1000;
+        repeat (7) #20 IS = IS + 4'b0001;
+    end
+
+    initial begin
+        $monitor("%b | %b | %b | %b", IS, R, Imm, N);
     end
 
 endmodule

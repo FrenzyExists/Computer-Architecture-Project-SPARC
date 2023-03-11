@@ -122,7 +122,7 @@ module mini_alu (
             end
             4'b1010: y = a << b;
             4'b1011: y = a >> b;
-            4'b1100: y = a >>> b;
+            4'b1100: y = $signed(a) >>> b[4:0];
             4'b1101: y = a;
             4'b1110: y = b;
             4'b1111: y = ~b;

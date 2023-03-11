@@ -3,12 +3,12 @@
 module source_operand (
     input [31:0] R,
     input [21:0] Imm,
-    input [31:0] IS,
+    input [3:0] IS,
     output reg [31:0] N
 );
 
 always @(*) begin
-    case({IS[31], IS[30], IS[24], IS[13]})
+    case(IS)
         
         4'b0000: N = {Imm, 10'b0}; // concatenate 10 0's to the right of Imm
         4'b0001: N = {Imm, 10'b0};
