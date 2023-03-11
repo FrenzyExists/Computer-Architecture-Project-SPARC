@@ -1,10 +1,12 @@
 `timescale 1ns / 1ns
+`include "project/src/project-operand.v"
+// `include "project-operand.v"
 
 module operand_tb;
 
     reg [31:0] R;
     reg [21:0] Imm;
-    reg [31:0] IS;
+    reg [3:0] IS;
     wire [31:0] N;
 
     source_operand uut (
@@ -14,17 +16,28 @@ module operand_tb;
         .N(N)
     );
 
+    integer i;
+
     initial begin
 
-    // Test Main, taken from the example the professor gave us
-    // TODO: Ask the professor for possible test case examples to include in this project
-    R = 32'b11100000000000000000000000000011;
-    Imm = 21'b1000110001000100010011;
+        R = 32'b11100000000000000000000000000011;
+        Imm = 22'b1000110001000100010011;
 
-    #5 $display("Main Test for Operand. R=%b and Imm=%b. All following test will be outputting N for every change in IS", R, Imm);
-    IS = 32'b0011111111111011111111110111111;
+        
+        #3 $display("               IS                |                 R                |         Imm            |              N");
+        IS = 4'b0000;
+        repeat (15) #20 IS = IS + 4'b0001;
 
-    #5 $display("Test 1: IS=%b, N=%b", IS, N);
-
+        Imm = 22'b1000110000000100010011;
+        #3 $display(" ");
+        
+        
+        IS = 4'b1000;
+        repeat (7) #20 IS = IS + 4'b0001;
     end
+
+    initial begin
+        $monitor("%b | %b | %b | %b", IS, R, Imm, N);
+    end
+
 endmodule

@@ -56,10 +56,25 @@ build_all() {
     iverilog -o "$current_dir/build/operand.vvp" "$current_dir/project/src/project-operand.v" "$current_dir/project/test/project-operand-tester.v"
     printf "done"
 
-    # Uncomment once these files are done
-    # printf "Building SPARC-focused Instruction Memory"
-    # iverilog -o "$current_dir/build/register-memory.vvp" "$current_dir/project/src/project-instruction-memory.v" "$current_dir/project/test/project-instruction-memory-tester.v"
-    # printf "done"
+    printf "Building SPARC-focused Instruction Memory"
+    iverilog -o "$current_dir/build/register-memory.vvp" "$current_dir/project/src/project-instruction-memory.v" "$current_dir/project/test/project-instruction-memory-tester.v"
+    printf "done"
+}
+
+execute-all() {
+    if ! test -d "$current_dir/build"; then
+        printf "build file not found, please run the script with the --build-all flag and then execute\n\n"
+        exit
+    fi
+    printf "Executing ALU\n--------------\n"
+    $current_dir/build/alu.vvp
+
+    printf "\n\nExecuting Source Operand2 Handler\n------------------\n"
+
+
+
+
+
 }
 
 
@@ -75,5 +90,8 @@ while test $# -gt 0; do
             build_all
             exit
         ;;
+        --execute-all)
+            execute-all
+            exit
     esac
 done
