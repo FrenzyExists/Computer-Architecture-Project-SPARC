@@ -1,5 +1,9 @@
+function [31:0] changeEndian;   //transform data from the memory to big-endian form
+    input [31:0] value;
+    changeEndian = {value[7:0], value[15:8], value[23:16], value[31:24]};
+endfunction
 
-module ram_512x8 (
+module ram128x32 (
     output reg [31:0] DataOut, 
     input Enable, ReadWrite, 
     input [8:0] Address, 
@@ -7,12 +11,6 @@ module ram_512x8 (
     input [1:0] Size,
     input [1:0] SignExtend
     );
-
-    function [31:0] changeEndian;   //transform data from the memory to big-endian form
-        input [31:0] value;
-        changeEndian = {value[7:0], value[15:8], value[23:16], value[31:24]};
-    endfunction
-
     reg [7:0] Mem[0:511];
 
     // Fuck it solution
