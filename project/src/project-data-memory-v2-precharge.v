@@ -3,33 +3,29 @@
 
 module ram_512x8_precharge;
 
-    integer fi, fo, code, i; 
+    integer fi, fo, code, i, data; 
 
-    reg Enable, ReadWrite; 
+    wire [31:0] DataOut;
+    reg Enable, ReadWrite, SignExtend;
+    reg [8:0] Address;
     reg [31:0] DataIn;
     reg [1:0] Size;
-    reg [1:0] SignExtend;
-
-    reg [32:0] data;
-    reg [8:0] Address; 
-    wire [31:0] DataOut;
 
     ram_512x8 ram1 (
-        .Enable(Enable),
-        .DataIn(DataIn),
-        .ReadWrite(ReadWrite),
-        .SignExtend(SignExtend),
-        .Size(Size),
-
-        .DataOut(DataOut),
-        .Address(Address)
+        DataOut, 
+        Enable, 
+        ReadWrite, 
+        SignExtend,
+        Address, 
+        DataIn,
+        Size
     );
 
     initial begin
         fi = $fopen("test-file.txt","r");
         Address = 9'b000000000;
         while (!$feof(fi)) begin
-            code = $fscanf(fi, "%d", data);
+            code = $fscanf(fi, "%b", data);
             ram1.Mem[Address] = data;
             Address = Address + 1;
             // #10 $display("Address = %d  code = %b, time=%d", Address, code, $time);
@@ -38,31 +34,63 @@ module ram_512x8_precharge;
     end
 
     initial begin
-        fo = $fopen("memcontent.txt", "w");
+            $monitor("Address = %d  DataOut = %h, time=%d", Address, DataOut, $time);
+    end
 
-        Enable = 1'b0; ReadWrite = 1'b0;
+    initial begin
+        #20
+        $finish;
+    end
+
+    initial begin
+        Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b11; 
         Address = 9'b000000000;
-
-        repeat (12) begin 
-            #5 Enable = 1'b1;
-            #5 SignExtend = 1'b0;
-
-            #5 Enable = 1'b0;
-            #5 SignExtend = 1'b0;
-
-            #5 Enable = 1'b1;
-            #5 SignExtend = 1'b1;
-
-            #5 Enable = 1'b0;
-            #5 SignExtend = 1'b1;
-
-            Address = Address + 1;
-            $display("Address = %d  DataOut = %h, time=%d", Address, DataOut, $time);
-            end
-            $finish;
-        end
-        always @ (posedge Enable) #10
-        begin
-        $fdisplay(fo,"data en %d = %h %d",Address, DataOut, $time);
+        #1
+        Address = Address + 4;
+        #1
+        Address = Address + 4;
+        #1
+        Address = Address + 4;
+        #1
+        Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b00; SignExtend = 1'b0;
+        Address = 9'b000000000;
+        #1
+        Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b01; SignExtend = 1'b0;
+        Address = Address + 2;
+        #1
+        Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b01; SignExtend = 1'b0;
+        Address = Address + 2;
+        #1
+        Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b00; SignExtend = 1'b1;
+        Address = 9'b000000000;
+        #1
+        Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b01; SignExtend = 1'b1;
+        Address = Address + 2;
+        #1
+        Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b01; SignExtend = 1'b1;
+        Address = Address + 2;
+        #1
+        Enable = 1'b1; ReadWrite = 1'b1; Size = 2'b00; 
+        Address = 9'b000000000;
+        DataIn = 32'h000000a6; 
+        #1
+        Enable = 1'b1; ReadWrite = 1'b1; Size = 2'b01; 
+        Address = Address + 2;
+        DataIn = 32'h0000bbcc; 
+        #1
+        Enable = 1'b1; ReadWrite = 1'b1; Size = 2'b01; 
+        Address = Address + 2;
+        DataIn = 32'h00aab419; 
+        #1
+        Enable = 1'b1; ReadWrite = 1'b1; Size = 2'b10; 
+        Address = Address + 4;
+        DataIn = 32'haeeabba6; 
+        #1
+        Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b11; 
+        Address = 9'b000000000;
+        #1
+        Address = Address + 4;
+        #1
+        Address = Address + 4;
     end
 endmodule
