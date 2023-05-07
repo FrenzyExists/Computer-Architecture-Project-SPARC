@@ -21,7 +21,12 @@ verilog_dir="src"
 tester_dir="testers"
 build_dir="build"
 
+# #################################
 files=("alu" "operand-handler")
+files_no_tester=("instruction-memory")
+files_with_precharge=("data-memory")
+# #################################
+
 undone_stuff=("pipeline-registers" "register-file" "data-memory" "instruction-memory" "control-unit" "hazard-unit" "reset-handler" "npc-pc-handler" "condition-handler")
 
 welcome() {
@@ -61,6 +66,24 @@ build_all() {
         iverilog -o "$build_dir/$file.vvp" "$verilog_dir/$file.v" "$tester_dir/${file}-tester.v"
         printf "\nDone :3\n"
     done
+
+    printf "Building files that do not include/need tester files...\n"
+
+    for file in "${files_no_tester[@]}"; do
+        printf "Building %s\n" "$file"
+        iverilog -o "$build_dir/$file.vvp" "$verilog_dir/$file.v"
+        printf "\nDone :3\n"
+    done
+
+    printf "Building files that require precharge files...\n"
+
+    for file in "${files_with_precharge[@]}"; do
+        printf "Building %s\n" "$file"
+        iverilog -o "$build_dir/$file.vvp" "$verilog_dir/$file.v" "$verilog_dir/${file}-precharge.v"
+        printf "\nDone :3\n"
+    done
+
+
 }
 
 
