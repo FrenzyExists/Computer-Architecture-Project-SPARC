@@ -4,11 +4,9 @@
 
 This project is a verilog hardware design of the SPARC V8 architecture. The design includes the implementation of four pipelines: IF/ID, ID/EX, EX/MEM, and MEM/WB.
 
-The design was created as part of a college course in Computer Architecture (ICOM 4215) by a team of three students: Detective Pikachu, Ash Ketchum, and Misty Waterflower.
-
 ## Designers
 
-The design was created as part of a college course in Computer Architecture taught by Dr. Nestor J. Rodriguez by a team of three students:
+The design was created as part of a college course in Computer Architecture (ICOM4215) taught by Dr. Nestor J. Rodriguez by a team of three students:
 
 - Detective Pikachu (Angel L Garca)
 - Dinkleberg (Victor Hernandez)
