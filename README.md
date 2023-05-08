@@ -38,7 +38,7 @@ The SPARC V8 verilog hardware design includes the following components:
 
 - ALU
 - Operand2 Handler
-- Precharge System
+- [Instruction Memory](/documentation/instruction-memory.md)
 - Instruction Fetch (IF) Unit
 - Instruction Decode (ID) Unit
 - Execution (EX) Unit
@@ -48,6 +48,22 @@ The SPARC V8 verilog hardware design includes the following components:
 - PSR (Processor State Register)
 - WIM (Window Invalid Mask)
 - Data Memory
+
+## PPU Diagram
+
+![DEEZ NUTZ](assets\sparc-v8-pipeline-processing-unit-diagram-Angel-Garcia-Victor-Blue-Victor-Barriera.jpg)
+
+
+## Optional Stuff for Fun
+
+Although it was not specified in the requirements, since all classmates are studying computer engineering and one of the team mates took a VHDL bootcamp, we decided to also include a few analysis using python.
+
+These include:
+
+- Timing Analysis
+- Power Analysis
+- Fault Analysis
+
 
 
 ## Future Work
