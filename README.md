@@ -34,22 +34,22 @@ This should execute the test file as well as the component that is being tested
 
 The SPARC V8 verilog hardware design includes the following components:
 
-- ALU
-- Operand2 Handler
+- [ALU](/documentation/alu.md)
+- [Operand2 Handler](/documentation/operand-handler.md)
 - [Instruction Memory](/documentation/instruction-memory.md)
-- Instruction Fetch (IF) Unit
-- Instruction Decode (ID) Unit
-- Execution (EX) Unit
-- Memory (MEM) Unit
-- Write-Back (WB) Unit
 - Register File
 - PSR (Processor State Register)
-- WIM (Window Invalid Mask)
 - Data Memory
+- Control Unit
+- Reset Handler
+- Condition Handler
+- PC/nPC Handler
+- WB Output Handler
+
 
 ## PPU Diagram
 
-![DEEZ NUTZ](assets\sparc-v8-pipeline-processing-unit-diagram-Angel-Garcia-Victor-Blue-Victor-Barriera.jpg)
+![DEEZ NUTZ](/assets/sparc-v8-pipeline-processing-unit-diagram-Angel-Garcia-Victor-Blue-Victor-Barriera.jpg)
 
 
 ## Optional Stuff for Fun
