@@ -22,7 +22,7 @@ module ram_512x8_precharge;
     );
 
     initial begin
-        fi = $fopen("/instruction-precharge.txt","r");
+        fi = $fopen("precharge/instruction-precharge.txt","r");
         Address = 9'b000000000;
         while (!$feof(fi)) begin
             code = $fscanf(fi, "%b", data);
@@ -52,6 +52,7 @@ module ram_512x8_precharge;
         #1
         Address = Address + 4;
         #1
+        $display("Read Mode");
         Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b00; SignExtend = 1'b0;
         Address = 9'b000000000;
         #1

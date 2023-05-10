@@ -7,8 +7,6 @@ green="\033[0;32m"
 blue="\033[0;34m"
 magenta="\033[0;35m"
 cyan="\033[0;36m"
-black="\033[0;30m"
-black_2="\033[0;90m"
 reset="\033[0m"
 
 version=("0.2" "Baby Doll")
@@ -22,12 +20,12 @@ tester_dir="testers"
 build_dir="build"
 
 # #################################
-files=("alu" "operand-handler")
+files=("alu" "operand-handler" "condition-handler" "reset-handler" "npc-pc-handler")
 files_no_tester=("instruction-memory")
 files_with_precharge=("data-memory")
 # #################################
 
-undone_stuff=("pipeline-registers" "register-file" "data-memory" "instruction-memory" "control-unit" "hazard-unit" "reset-handler" "npc-pc-handler" "condition-handler")
+undone_stuff=("pipeline-registers" "register-file" "data-memory" "instruction-memory" "control-unit" "hazard-unit" )
 
 welcome() {
         printf "%b" "
