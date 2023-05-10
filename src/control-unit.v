@@ -97,6 +97,7 @@ reg [1:0] instr_op;
 
 always @(posedge clk or negedge clr) begin
     if (instr == 32'b0) begin
+        // $display("Instructions are NOP...");
         ID_jmpl_instr               <= 1'b0;
         ID_call_instr               <= 1'b0;
         ID_branch_instr             <= 1'b0;
@@ -110,7 +111,7 @@ always @(posedge clk or negedge clr) begin
         CC_Enable                   <= 1'b0;
     end else begin
         instr_op = instr[31:30];
-        $display("Getting the op instruction =  %b", instr_op);
+        // $display("Getting the op instruction =  %b", instr_op);
         case (instr_op)
             2'b00: begin // SETHI or Branch Instructions
                 ID_jmpl_instr               <= 1'b0;
@@ -159,9 +160,9 @@ always @(posedge clk or negedge clr) begin
 
             2'b10, 2'b11: begin
                 op3 = instr[24:19]; // the opcode instruction that tells what to do
-                $display("Getting the op3 code =  %b", op3);
+                // $display("Getting the op3 code =  %b", op3);
                 if (instr_op == 2'b11) begin
-                    $display("Instruction is a Load/Store Instruction");
+                    // $display("Instruction is a Load/Store Instruction");
                     // Load/Store Instruction
                     ID_jmpl_instr               <= 1'b0;
                     ID_call_instr               <= 1'b0;
@@ -227,7 +228,7 @@ always @(posedge clk or negedge clr) begin
                     
                         // Jmpl
                         6'b111000: begin
-                            $display("Instruction is a jmpl instruction");    
+                            // $display("Instruction is a jmpl instruction");    
                             ID_jmpl_instr               <= 1'b1;
                             ID_load_instr               <= 1'b0;
                             ID_data_mem_SE              <= 1'b0;

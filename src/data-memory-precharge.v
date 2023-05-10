@@ -22,7 +22,7 @@ module ram_512x8_precharge;
     );
 
     initial begin
-        fi = $fopen("precharge/instruction-precharge.txt","r");
+        fi = $fopen("precharge/sparc-instructions-precharge.txt","r");
         Address = 9'b000000000;
         while (!$feof(fi)) begin
             code = $fscanf(fi, "%b", data);
