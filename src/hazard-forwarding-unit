@@ -1,0 +1,64 @@
+
+
+module HazForw_unit (
+    output reg [1:0] HFU_Forw_PA, HFU_Forw_PB, HFU_Forw_PB,
+    output reg HFU_NOP, HFU_IFID_LE, HFU_LE_PC,
+    input [3:0] HFU_EX_Rd, HFU_MEM_Rd, HFU_WB_Rd, HFU_ID_Rn, HFU_ID_Rm, 
+    input HFU_EX_RF_enable, HFU_MEM_RF_enable, HFU_WB_RF_enable, HFU_EX_load_instr, HFU_ID_shift_imm
+);
+
+    always @ (*) begin
+ /**********************************************************************************DATA FORWARDING DETECTION & HANDLING***********************************************************************************/
+        /*//FORWARDING PA (ID_mux1)\\*/
+        if (HFU_EX_RF_enable && (HFU_ID_Rn === HFU_EX_Rd)) //EX forwarding
+            HFU_Forw_PA <= 2'b01; //Forwarding [HFU_EX_Rd] to ID
+
+        else if (HFU_MEM_RF_enable && (HFU_ID_Rn === HFU_MEM_Rd)) //MEM forwarding
+                HFU_Forw_PA <= 2'b10; //Forwarding [HFU_MEM_Rd] to ID
+
+            else if (HFU_WB_RF_enable && (HFU_ID_Rn === HFU_WB_Rd)) //WB forwarding
+                    HFU_Forw_PA <= 2'b11; //Forwarding [HFU_WB_Rd] to ID
+
+                else HFU_Forw_PA <= 2'b00; //Not forwarding (passing PA from the register file)
+
+        /*//FORWARDING PB (ID_mux2)\\*/
+        if (HFU_EX_RF_enable && (HFU_ID_Rm === HFU_EX_Rd)) //EX forwarding
+            HFU_Forw_PB <= 2'b01; //Forwarding [HFU_EX_Rd] to ID
+
+        else if (HFU_MEM_RF_enable && (HFU_ID_Rm === HFU_MEM_Rd)) //MEM forwarding
+                HFU_Forw_PB <= 2'b10; //Forwarding [HFU_MEM_Rd] to ID
+
+            else if (HFU_WB_RF_enable && (HFU_ID_Rm === HFU_WB_Rd)) //WB forwarding
+                    HFU_Forw_PB <= 2'b11; //Forwarding [HFU_WB_Rd] to ID
+
+                else HFU_Forw_PB <= 2'b00; //Not forwarding (passing PB from the register file)
+
+        /*//FORWARDING PC (ID_mux3)\\*/
+        if (HFU_EX_RF_enable && (HFU_ID_Rd === HFU_EX_Rd)) //EX forwarding
+            HFU_Forw_PC <= 2'b01; //Forwarding [HFU_EX_Rd] to ID
+
+        else if (HFU_MEM_RF_enable && (HFU_ID_Rd === HFU_MEM_Rd)) //MEM forwarding
+                HFU_Forw_PC <= 2'b10; //Forwarding [HFU_MEM_Rd] to ID
+
+            else if (HFU_WB_RF_enable && (HFU_ID_Rd === HFU_WB_Rd)) //WB forwarding
+                    HFU_Forw_PC <= 2'b11; //Forwarding [HFU_WB_Rd] to ID
+
+                else HFU_Forw_PC <= 2'b00; //Not forwarding (passing PB from the register file)
+
+/**********************************************************************************LOAD HAZARD DETECTION & HANDLING**************************************************************************************/
+        //Hazard asserted
+        if (HFU_EX_load_instr && ((HFU_ID_Rn === HFU_EX_Rd) || ((HFU_ID_Rm === HFU_EX_Rd) && !HFU_ID_shift_imm)))
+        begin
+            HFU_NOP <= 1'b1; //Forward Control Signals corresponding to a NOP instruction
+            HFU_IFID_LE <= 1'b0; //Disable IF/ID Pipeline Register from loading
+            HFU_LE_PC <= 1'b0; //Disable Load Enable of the Program Counter (PC)
+        end
+
+        //Hazard not asserted
+        else begin
+            HFU_NOP <= 1'b0;//Dont Forward Control Signals corresponding to a NOP instruction
+            HFU_IFID_LE <= 1'b1; // IF/ID Pipeline Register is enabled
+            HFU_LE_PC <= 1'b1; // Program Counter is Load Enable
+        end
+    end
+endmodule

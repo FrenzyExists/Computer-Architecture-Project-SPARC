@@ -1,4 +1,6 @@
 // Instruction memory - Victor Barriera
+`timescale 1ns / 1ps
+
 
 module rom_512x8 (output reg [31:0] DataOut, input [8:0] Address);
     reg [7:0] Mem[0:511];       //512 8bit locations
@@ -21,7 +23,7 @@ module rom_precharge;
     );
 
     initial begin
-        fi = $fopen("test-file.txt","r");
+        fi = $fopen("precharge/sparc-instructions-precharge.txt","r");
         Addr = 9'b000000000;
         while (!$feof(fi)) begin
             code = $fscanf(fi, "%b", data);
@@ -32,7 +34,7 @@ module rom_precharge;
     end
 
     initial begin
-            $monitor("Address = %d  DataOut = %h, time=%d", Address, DataOut, $time);
+            $monitor("Address = %d  DataOut = %b, time=%d", Address, DataOut, $time);
     end
 
     initial begin
