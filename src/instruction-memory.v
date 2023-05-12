@@ -23,7 +23,7 @@ module rom_precharge;
     );
 
     initial begin
-        fi = $fopen("precharge/sparc-instructions-precharge.txt","r");
+        fi = $fopen("precharge/instruction-precharge.txt","r");
         Addr = 9'b000000000;
         while (!$feof(fi)) begin
             code = $fscanf(fi, "%b", data);
