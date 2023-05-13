@@ -9,11 +9,11 @@ module pipeline_IF_ID (
     output wire [31:0] PC_ID_out,        // PC
     output wire [21:0] I21_0,            // Imm22
     output wire [29:0] I29_0,            // Can't remember, don't ask
-    output wire I29_branch_instr,        // For Branch, part of Phase 4
-    output wire [4:0] I18_14,            // rs1
-    output wire [4:0] I4_0,              // rs2
-    output wire [4:0] I29_25,            // rd
-    output wire [3:0] I28_25,            // cond, for Branch
+    output wire        I29_branch_instr,        // For Branch, part of Phase 4
+    output wire [4:0]  I18_14,            // rs1
+    output wire [4:0]  I4_0,              // rs2
+    output wire [4:0]  I29_25,            // rd
+    output wire [3:0]  I28_25,            // cond, for Branch
     output wire [31:0] instruction_out   
 );
 
@@ -190,9 +190,9 @@ module pipeline_MEM_WB(
                 WB_RD_out_reg                   = 32'b0; 
                 WB_Register_File_Enable_reg     = 1'b0;
             end else begin 
-                WB_RD_instr_reg                 = WB_RD_instr
+                WB_RD_instr_reg                 = WB_RD_instr;
                 WB_RD_out_reg                   = MUX_out;
-                WB_Register_File_Enable_reg     = MEM_control_unit_instr
+                WB_Register_File_Enable_reg     = MEM_control_unit_instr;
             end
         end
     end
@@ -202,5 +202,151 @@ module pipeline_MEM_WB(
     assign WB_RD_out                = WB_RD_out_reg;
     assign WB_Register_File_Enable  = WB_Register_File_Enable_reg;
 
+
+endmodule
+
+
+module pipeline_test;
+    reg  [31:0] PC;
+    wire [31:0] nPC;
+    reg  [31:0] instruction;
+    reg LE;
+    reg clr;
+    reg clk;
+    reg reset;
+    reg enable;
+
+
+    wire [31:0] PC_ID;
+    wire [31:0] PC_EX;
+    wire [31:0] PC_MEM;
+    wire [31:0] instruction_out;
+
+    wire [3:0] ALU_OP;
+    wire CC_Enable;
+    wire [3:0] IS;
+
+    wire [21:0] Imm22;
+    wire [29:0] I29_0;
+    wire I29_branch_instr;
+    wire [4:0] rs1;
+    wire [4:0] rs2;
+    wire [4:0] rd;
+    wire [3:0] cond;
+
+    reg [17:0] ID_CU;
+    wire [8:0] EX_CU;
+    wire       MEM_CU;
+
+    reg  [4:0] RD_ID;
+    wire [4:0] RD_EX;
+    wire [4:0] RD_MEM;
+    wire [4:0] RD_WB;
+
+    wire [3:0] DataMemInstructions;
+    wire [2:0] OutputHandlerInstructions;
+
+    wire [31:0] OutputMUX;
+    wire [31:0] WB_RD_out;
+
+    wire WB_Register_File_Enable;
+
+    // Clock generator
+    initial begin
+        clr <= 1'b1;
+        clk <= 1'b0;
+        repeat(2) #2 clk = ~clk;
+        clr <= 1'b0;
+        repeat(12) begin
+            #2 clk = ~clk;
+        end
+    end
+
+    pipeline_IF_ID IF_ID(
+        .PC                             (PC),
+        .instruction                    (instruction),
+        .reset                          (reset), 
+        .LE                             (LE), 
+        .clk                            (clk), 
+        .clr                            (clr),
+        .PC_ID_out                      (PC_ID),
+        .I21_0                          (Imm22),
+        .I29_0                          (I29_0),
+        .I29_branch_instr               (I29_branch_instr),
+        .I18_14                         (rs1),
+        .I4_0                           (rs2),
+        .I29_25                         (rd),
+        .I28_25                         (cond),
+        .instruction_out                (instruction_out) 
+    );
+
+    pipeline_ID_EX ID_EX(
+         .PC                            (PC_ID),
+         .clk                           (clk),
+         .clr                           (clr),
+         .ID_control_unit_instr         (ID_CU),
+         .ID_RD_instr                   (RD_EX),
+
+        // OUTPUT
+        .PC_EX_out                      (PC_EX),
+        .EX_IS_instr                    (IS),
+        .EX_ALU_OP_instr                (ALU_OP),
+        .EX_RD_instr                    (RD_EX),
+        .EX_CC_Enable_instr             (CC_Enable),
+        .EX_control_unit_instr          (EX_CU)
+    );
+
+    pipeline_EX_MEM EX_MEM(
+        .reset                          (reset),
+        .clk                            (clk), 
+        .clr                            (clr),
+        .EX_control_unit_instr          (EX_CU),
+        .PC                             (PC_EX),
+        .EX_RD_instr                    (RD_EX),
+
+        .Data_Mem_instructions          (DataMemInstructions),
+        .Output_Handler_instructions    (OutputHandlerInstructions),
+        .MEM_control_unit_instr         (MEM_CU),
+        .PC_MEM_out                     (PC_MEM),
+        .MEM_RD_instr                   (RD_MEM)
+    );
+
+    pipeline_MEM_WB MEM_WB(
+        .reset                          (reset),
+        .clk                            (clk),
+        .clr                            (clr),
+        .MEM_RD_instr                    (RD_MEM),
+        .MUX_out                         (OutputMUX),
+        .MEM_control_unit_instr          (MEM_CU),
+        .WB_RD_instr                     (RD_WB),
+        .WB_RD_out                       (WB_RD_out),
+        .WB_Register_File_Enable         (WB_Register_File_Enable) 
+    );
+
+    initial begin
+        #32
+        $finish;
+    end 
+
+    initial begin
+        $monitor("Testing a pipeline baseline of sorts: enable: %b | reset: %b | PC: %d | PC_ID: %d | PC_EX: %d | PC_MEM: %d | time %d | clk: %d clr: %d", enable, reset, PC, PC_ID, PC_EX, PC_MEM, $time, clk, clr);
+    end
+
+
+    initial begin
+        PC = 32'd21;
+        reset = 1'b0;
+        enable = 1'b0;
+        #4;
+        PC = 32'd21;
+        reset = 1'b0;
+        enable = 1'b1;
+        #12;
+        PC = 32'd21;
+        reset = 1'b1;
+        enable = 1'b1;
+        #4;
+
+    end
 
 endmodule
