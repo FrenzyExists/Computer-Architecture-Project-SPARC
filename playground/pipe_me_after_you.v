@@ -64,26 +64,143 @@ module pipeline_IF_ID (
     assign instruction_out   = instruction_reg;           
 endmodule
 
-module pipeline_ID_EX(
-    input wire reset, LE, clk, clr,
-    input wire [18:0] ID_control_unit_instr,     // Control Unit Instructions
-    input wire [31:0] PC,
-    
 
-    output wire [31:0] PC_EX_out,                 // PC
-    output wire [3:0] EX_IS_instr,                // The bits used by the operand handler            
-    output wire [3:0] EX_ALU_OP_instr,            // The opcode used by the ALU 
-    output wire [9:0] EX_control_unit_instr,      // The rest of the control unit instructions that don't need to be deconstructed
-    output wire [31:0] instruction_out
+module pipeline_ID_EX(
+    input  wire reset, clk, clr,
+    input  wire [17:0] ID_control_unit_instr,      // Control Unit Instructions
+    input  wire [31:0] PC,
+    input  wire [4:0]  ID_RD_instr,
+
+    output wire [31:0] PC_EX_out,                  // PC
+    output wire [3:0]  EX_IS_instr,                // The bits used by the operand handler            
+    output wire [3:0]  EX_ALU_OP_instr,            // The opcode used by the ALU 
+    output wire [4:0]  EX_RD_instr,                 // 
+    output wire        EX_CC_Enable_instr,
+
+    output wire [8:0]  EX_control_unit_instr      // The rest of the control unit instructions that don't need to be deconstructed
     );
 
-    reg [31:0] instruction_reg;
     reg [31:0] PC_ID_out_reg;
+    reg [3:0]  EX_IS_instr_reg;
+    reg [3:0]  EX_ALU_OP_instr_reg;
+    reg [8:0] EX_control_unit_instr_reg;
+    reg [5:0]  EX_RD_instr_reg;
+    reg        EX_CC_Enable_instr_reg;
+
+    always@(posedge clk, negedge clr) begin
+        if (clk  == 1 && clr == 0) begin
+            if (reset) begin
+                PC_ID_out_reg               = 32'b0;
+                EX_IS_instr_reg             = 4'b0;
+                EX_ALU_OP_instr_reg         = 4'b0;
+                EX_control_unit_instr_reg   = 11'b0;
+                EX_RD_instr_reg             = 5'b0;
+                EX_CC_Enable_instr_reg      = 1'b0;
+            end else begin
+                PC_ID_out_reg               = PC;
+                EX_IS_instr_reg             = ID_control_unit_instr[13:10];
+                EX_ALU_OP_instr_reg         = ID_control_unit_instr[17:14];
+                EX_RD_instr_reg             = EX_RD_instr;
+                EX_CC_Enable_instr_reg      = ID_control_unit_instr[9];
+                
+                EX_control_unit_instr_reg   = ID_control_unit_instr[8:0];
+            end
+        end
+    end
+
+    assign  PC_EX_out                   = PC_ID_out_reg;
+    assign  EX_IS_instr                 = EX_IS_instr_reg;
+    assign  EX_ALU_OP_instr             = EX_ALU_OP_instr_reg;
+    assign  EX_control_unit_instr       = EX_control_unit_instr_reg;
+    assign  EX_RD_instr                 = EX_RD_instr_reg;
+    assign  EX_CC_Enable_instr          = EX_CC_Enable_instr_reg;
+endmodule
+
+
+module pipeline_EX_MEM(
+    input wire reset,  clk, clr,
+    input wire [8:0]   EX_control_unit_instr,
+    input wire [31:0]  PC,
+    input wire [4:0]   EX_RD_instr,
+    
+    output wire [3:0]  Data_Mem_instructions,
+    output wire [2:0]  Output_Handler_instructions,
+    output wire        MEM_control_unit_instr,
+    output wire [31:0] PC_MEM_out,
+    output wire [4:0]  MEM_RD_instr
+);
+
+    reg [3:0]   Data_Mem_instructions_reg;
+    reg [2:0]   Output_Handler_instructions_reg;
+    reg         MEM_control_unit_instr_reg;
+    reg [4:0]   MEM_RD_instr_reg;
+    reg [31:0]  PC_MEM_out_reg;
+
+
+    // About EX_control_unit_instr
+    // from 3:0 its the jumpl, call, 
+
+    always@(posedge clk, negedge clr) begin
+        if (clk  == 1 && clr == 0) begin
+            if (reset) begin
+                Data_Mem_instructions_reg           = 4'b0;
+                Output_Handler_instructions_reg     = 3'b0;
+                MEM_control_unit_instr_reg          = 1'b0;
+                MEM_RD_instr_reg                    = 5'b0;
+                PC_MEM_out_reg                      = 32'b0;
+            end else begin
+                Data_Mem_instructions_reg           = EX_control_unit_instr[8:4];
+                Output_Handler_instructions_reg     = EX_control_unit_instr[2:0];
+                MEM_control_unit_instr_reg          = EX_control_unit_instr[3];
+                MEM_RD_instr_reg                    = EX_RD_instr;
+                PC_MEM_out_reg                      = PC;
+            end
+        end
+    end
+
+    assign Data_Mem_instructions        = Data_Mem_instructions_reg;
+    assign Output_Handler_instructions  = Output_Handler_instructions_reg;
+    assign MEM_control_unit_instr       = MEM_control_unit_instr_reg;
+    assign MEM_RD_instr                 = MEM_RD_instr_reg;
+    assign PC_MEM_out                   = PC_MEM_out_reg;
+endmodule
+
+
+module pipeline_MEM_WB(
+    input wire reset, clk, clr,
+    input wire [4:0]   MEM_RD_instr,
+    input wire [31:0]  MUX_out,
+    input wire         MEM_control_unit_instr,
+
+    output wire [4:0]  WB_RD_instr,
+    output wire [31:0] WB_RD_out,
+    output wire        WB_Register_File_Enable 
+    );
+
+
+    reg [4:0]  WB_RD_instr_reg;
+    reg [31:0] WB_RD_out_reg;
+    reg        WB_Register_File_Enable_reg;
 
 
     always@(posedge clk, negedge clr) begin
         if (clk  == 1 && clr == 0) begin
-
+            if (reset) begin
+                WB_RD_instr_reg                 = 5'b0;
+                WB_RD_out_reg                   = 32'b0; 
+                WB_Register_File_Enable_reg     = 1'b0;
+            end else begin 
+                WB_RD_instr_reg                 = WB_RD_instr
+                WB_RD_out_reg                   = MUX_out;
+                WB_Register_File_Enable_reg     = MEM_control_unit_instr
+            end
         end
     end
+
+
+    assign WB_RD_instr              = WB_RD_instr_reg;
+    assign WB_RD_out                = WB_RD_out_reg;
+    assign WB_Register_File_Enable  = WB_Register_File_Enable_reg;
+
+
 endmodule
