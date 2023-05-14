@@ -19,6 +19,24 @@ module PC_adder (
 endmodule
 
 
+module register (
+    output reg [31:0] OUT, 
+    input [31:0] IN, 
+    input LE, clk, reset, clr
+    );
+
+    always @ (posedge clk, negedge clr) begin
+        $display("PC reset value: %b | clk = %b | time:%d", reset, clk, $time);
+        if (clr == 0 && clk == 1) begin
+            if(reset) begin
+                OUT = 32'b0;
+            end else if (LE) begin
+                OUT = IN;
+            end
+        end
+    end 
+endmodule
+
 
 // MUX Module that was not the bane of my existance
 module control_unit_mux(
@@ -417,7 +435,6 @@ module control_unit(
         instr_signals[17:14]  = ID_ALU_OP_instr;
         instr_signals[18]     = ID_branch_instr;
 
-
         $display("\n\nInstructions: %b", instr);
         $display("Control Unit Instruction Signals:");
         $display("jmpl: %d | call: %b | load: %b | regfile E: %b | branch: %b | CC_E: %b\n-------------------------", ID_jmpl_instr, ID_call_instr, ID_load_instr, ID_register_file_Enable, ID_branch_instr, CC_Enable);
@@ -433,10 +450,9 @@ endmodule
 
 // Pipeline module for IF/ID
 module pipeline_IF_ID (
-    input wire reset, LE, clk, clr,
-    input wire [31:0] PC,
-    input wire [31:0] instruction,
-
+    input wire         reset, LE, clk, clr,
+    input wire [31:0]  PC,
+    input wire [31:0]  instruction,
 
     output wire [31:0] PC_ID_out,        // PC
     output wire [21:0] I21_0,            // Imm22
@@ -448,7 +464,6 @@ module pipeline_IF_ID (
     output wire [3:0]  I28_25,            // cond, for Branch
     output wire [31:0] instruction_out   
 );
-
 
     reg [31:0] PC_ID_out_reg;
     reg [21:0] I21_0_reg;
@@ -629,7 +644,6 @@ module pipeline_MEM_WB(
     reg [31:0] WB_RD_out_reg;
     reg        WB_Register_File_Enable_reg;
 
-
     always@(posedge clk, negedge clr) begin
         if (clk  == 1 && clr == 0) begin
             if (reset) begin
@@ -667,7 +681,8 @@ module pipeline_test;
     reg enable;
     reg S; // To trigger the CU or something idfk
 
-    reg  [31:0] PC;
+    wire [31:0] PC;
+    wire [31:0] PC_4;
     wire [31:0] nPC;
     wire [31:0] PC_ID;
     wire [31:0] PC_EX;
@@ -714,15 +729,30 @@ module pipeline_test;
         end
     end
 
-
-    register PC_reg();
-
-    register nPC_reg();
+    register nPC_reg(
+        .clk(clk),
+        .clr(clr),
+        .reset(reset),
+        .LE(LE),
+        .IN(PC_4),
+        .OUT(nPC)
+    );
 
     PC_adder adder(
-        .PC_in(PC),
-        .PC_out(nPC)
+        .PC_in(nPC),
+        .PC_out(PC_4)
     );
+
+    register PC_reg(
+        .clk(clk),
+        .clr(clr),
+        .reset(reset),
+        .LE(LE),
+        .IN(nPC),
+        .OUT(PC)
+    );
+
+
 
     rom_512x8 ram1 (
         instruction,
@@ -744,89 +774,91 @@ module pipeline_test;
 
 
 
-    pipeline_IF_ID IF_ID(
-        .PC                             (nPC),
-        .instruction                    (instruction),
-        .reset                          (reset), 
-        .LE                             (LE), 
-        .clk                            (clk), 
-        .clr                            (clr),
+    // pipeline_IF_ID IF_ID(
+    //     .PC                             (nPC),
+    //     .instruction                    (instruction),
+    //     .reset                          (reset), 
+    //     .LE                             (LE), 
+    //     .clk                            (clk), 
+    //     .clr                            (clr),
 
-        .PC_ID_out                      (PC_ID),
-        .I21_0                          (Imm22),
-        .I29_0                          (I29_0),
-        .I29_branch_instr               (I29_branch_instr),
-        .I18_14                         (rs1),
-        .I4_0                           (rs2),
-        .I29_25                         (rd),
-        .I28_25                         (cond),
-        .instruction_out                (instruction_out) 
-    );
+    //     .PC_ID_out                      (PC_ID),
+    //     .I21_0                          (Imm22),
+    //     .I29_0                          (I29_0),
+    //     .I29_branch_instr               (I29_branch_instr),
+    //     .I18_14                         (rs1),
+    //     .I4_0                           (rs2),
+    //     .I29_25                         (rd),
+    //     .I28_25                         (cond),
+    //     .instruction_out                (instruction_out) 
+    // );
 
-    control_unit CU (
-        .clk(clk),
-        .clr(clr),
-        .instr(instruction_out),
+    // control_unit CU (
+    //     .clk(clk),
+    //     .clr(clr),
+    //     .instr(instruction_out),
 
-        .instr_signals(ID_CU)
-    );
+    //     .instr_signals(ID_CU)
+    // );
 
 
 
-    pipeline_ID_EX ID_EX(
-         .PC                            (PC_ID),
-         .clk                           (clk),
-         .clr                           (clr),
-         .ID_control_unit_instr         (ID_CU[17:0]),
-         .ID_RD_instr                   (RD_EX),
+    // pipeline_ID_EX ID_EX(
+    //      .PC                            (PC_ID),
+    //      .clk                           (clk),
+    //      .clr                           (clr),
+    //      .ID_control_unit_instr         (ID_CU[17:0]),
+    //      .ID_RD_instr                   (RD_EX),
 
-        // OUTPUT
-        .PC_EX_out                      (PC_EX),
-        .EX_IS_instr                    (IS),
-        .EX_ALU_OP_instr                (ALU_OP),
-        .EX_RD_instr                    (RD_EX),
-        .EX_CC_Enable_instr             (CC_Enable),
-        .EX_control_unit_instr          (EX_CU)
-    );
+    //     // OUTPUT
+    //     .PC_EX_out                      (PC_EX),
+    //     .EX_IS_instr                    (IS),
+    //     .EX_ALU_OP_instr                (ALU_OP),
+    //     .EX_RD_instr                    (RD_EX),
+    //     .EX_CC_Enable_instr             (CC_Enable),
+    //     .EX_control_unit_instr          (EX_CU)
+    // );
 
-    pipeline_EX_MEM EX_MEM(
-        .reset                          (reset),
-        .clk                            (clk), 
-        .clr                            (clr),
-        .EX_control_unit_instr          (EX_CU),
-        .PC                             (PC_EX),
-        .EX_RD_instr                    (RD_EX),
+    // pipeline_EX_MEM EX_MEM(
+    //     .reset                          (reset),
+    //     .clk                            (clk), 
+    //     .clr                            (clr),
+    //     .EX_control_unit_instr          (EX_CU),
+    //     .PC                             (PC_EX),
+    //     .EX_RD_instr                    (RD_EX),
 
-        .Data_Mem_instructions          (DataMemInstructions),
-        .Output_Handler_instructions    (OutputHandlerInstructions),
-        .MEM_control_unit_instr         (MEM_CU),
-        .PC_MEM_out                     (PC_MEM),
-        .MEM_RD_instr                   (RD_MEM)
-    );
+    //     .Data_Mem_instructions          (DataMemInstructions),
+    //     .Output_Handler_instructions    (OutputHandlerInstructions),
+    //     .MEM_control_unit_instr         (MEM_CU),
+    //     .PC_MEM_out                     (PC_MEM),
+    //     .MEM_RD_instr                   (RD_MEM)
+    // );
 
-    pipeline_MEM_WB MEM_WB(
-        .reset                          (reset),
-        .clk                            (clk),
-        .clr                            (clr),
-        .MEM_RD_instr                    (RD_MEM),
-        .MUX_out                         (OutputMUX),
-        .MEM_control_unit_instr          (MEM_CU),
-        .WB_RD_instr                     (RD_WB),
-        .WB_RD_out                       (WB_RD_out),
-        .WB_Register_File_Enable         (WB_Register_File_Enable) 
-    );
+    // pipeline_MEM_WB MEM_WB(
+    //     .reset                          (reset),
+    //     .clk                            (clk),
+    //     .clr                            (clr),
+    //     .MEM_RD_instr                   (RD_MEM),
+    //     .MUX_out                        (OutputMUX),
+    //     .MEM_control_unit_instr         (MEM_CU),
+    //     .WB_RD_instr                    (RD_WB),
+    //     .WB_RD_out                      (WB_RD_out),
+    //     .WB_Register_File_Enable        (WB_Register_File_Enable) 
+    // );
 
     initial begin
-        #32
+        #52;
         $finish;
     end 
 
     initial begin
-        $monitor("Testing a pipeline baseline of sorts: enable: %b | reset: %b | PC: %d | PC_ID: %d | PC_EX: %d | PC_MEM: %d | time %d | clk: %d clr: %d\n----- Instruction: %b ------", enable, reset, PC, PC_ID, PC_EX, PC_MEM, $time, clk, clr, instruction_out);
+        $monitor("PC: %d | nPC: %d | PC+4: %d", PC, nPC, PC_4);
+        // $monitor("Testing a pipeline baseline of sorts: enable: %b | reset: %b | PC: %d | PC_ID: %d | PC_EX: %d | PC_MEM: %d | time %d | clk: %d clr: %d\n----- Instruction: %b ------", enable, reset, PC, PC_ID, PC_EX, PC_MEM, $time, clk, clr, instruction_out);
     end
 
 
     initial begin
+        LE = 1'b1;
         Address = 9'b000000000;
         // PC = 32'd21;
         reset = 1'b0;
@@ -835,7 +867,10 @@ module pipeline_test;
         // PC = 32'd21;
         reset = 1'b0;
         enable = 1'b1;
-        #12;
+        #40;
+
+
+        
         // PC = 32'd21;
         reset = 1'b1;
         enable = 1'b1;
