@@ -1,13 +1,55 @@
 `timescale 1ns / 1ns
 
-module rom_512x8 (output reg [31:0] DataOut, input [8:0] Address);
+/**
+ * ROM 512x8-bit module.
+ *
+ * This module implements a 512x8-bit ROM using Verilog. The ROM stores data in an
+ * array of 512 8-bit locations, which can be accessed using an 8-bit address input.
+ * The data output is a 32-bit value obtained by concatenating four adjacent 8-bit
+ * values from the memory array.
+ *
+ * Inputs:
+ *  - Address [7:0]: 8-bit input used to address a location in the memory array.
+ *
+ * Outputs:
+ *  - DataOut [31:0]: 32-bit output obtained by concatenating four adjacent 8-bit
+ *                    values from the memory array.
+ *
+ * Implementation details:
+ *  - The module uses a memory array of 512 8-bit locations to store data.
+ *  - The memory array is declared as a Verilog reg [7:0] type with a range of 0 to 511.
+ *  - The DataOut output is computed using a concatenation of four adjacent 8-bit values
+ *    from the memory array, starting at the address specified by the Address input.
+ *  - The always@(Address) block is used to update the DataOut output whenever the
+ *    Address input changes.
+ */
+module rom_512x8 (output reg [31:0] DataOut, input [7:0] Address);
     reg [7:0] Mem[0:511];       //512 8bit locations
-
     always@(Address)            //Loop when Address changes
-        DataOut <= {Mem[Address], Mem[Address+1], Mem[Address+2], Mem[Address+3]};
+        DataOut = {Mem[Address], Mem[Address+1], Mem[Address+2], Mem[Address+3]};
 endmodule
 
 
+/**
+ * PC_adder - A module for incrementing the program counter by 4
+ *
+ * The PC_adder module receives a 32-bit program counter value (PC_in) and
+ * increments it by 4 to obtain the next program counter value (PC_out).
+ *
+ * Inputs:
+ *  - PC_in: a 32-bit input wire representing the current program counter value
+ *
+ * Outputs:
+ *  - PC_out: a 32-bit output register representing the next program counter value
+ *
+ * Usage example:
+ *
+ *  PC_adder pc_adder(
+ *      .PC_in(PC),
+ *      .PC_out(next_PC)
+ *  );
+ *
+ */
 module PC_adder (
     input wire [31:0] PC_in,
     output reg [31:0] PC_out
@@ -19,19 +61,63 @@ module PC_adder (
 endmodule
 
 
-module register (
-    output reg [31:0] OUT, 
-    input [31:0] IN, 
-    input LE, clk, reset, clr
+/*
+ * PC/nPC Register module
+ *
+ * The module represents a pair of registers, PC and nPC, that hold 32-bit values
+ * for the current and next program counters, respectively. The module also includes
+ * a multiplexer that selects between different input signals to update the PC register.
+ * The selected signal is determined by the mux_select input, which is a 2-bit wide signal.
+ *
+ * Inputs:
+ *   clk: Clock signal
+ *   clr: Active low clear signal
+ *   reset: Reset signal to initialize the register to zero
+ *   LE: Load enable signal, determines when to update the PC register
+ *   nPC: 32-bit input signal for the next program counter
+ *   ALU_OUT: 32-bit input signal from the ALU
+ *   TA: 32-bit input signal from the target address
+ *   mux_select: 2-bit input signal to select between different input signals
+ *
+ * Outputs:
+ *   OUT: 32-bit output signal that holds the value of the PC register after the update
+ *
+ * Example usage:
+ *   PC_nPC_Register PC (
+ *     .clk(clk),
+ *     .clr(clr),
+ *     .reset(reset),
+ *     .LE(LE),
+ *     .nPC(nPC),
+ *     .ALU_OUT(ALU_OUT),
+ *     .TA(TA),
+ *     .mux_select(mux_select),
+ *     .OUT(PC_out)
+ *   );
+ */
+module PC_nPC_Register(
+    input           clk,
+    input           clr,
+    input           reset,
+    input           LE,
+    input [31:0]    nPC,
+    input [31:0]    ALU_OUT,
+    input [31:0]    TA,
+    input [1:0]     mux_select,
+    output reg [31:0]   OUT
     );
 
     always @ (posedge clk, negedge clr) begin
-        $display("PC reset value: %b | clk = %b | time:%d", reset, clk, $time);
         if (clr == 0 && clk == 1) begin
             if(reset) begin
-                OUT = 32'b0;
+                OUT <= 32'b0;
             end else if (LE) begin
-                OUT = IN;
+                case (mux_select)
+                    2'b00: OUT <= nPC;
+                    2'b01:  OUT <= TA;
+                    2'b10:  OUT <= ALU_OUT;
+                    default: OUT <= OUT;
+                endcase
             end
         end
     end 
@@ -103,7 +189,28 @@ module control_unit_mux(
     end
 endmodule
 
-
+/*
+* Control Unit Module
+*
+* The registers in the module are as follows:
+* 
+*
+* ID_jmpl_instr: a register that stores the value 1 if the instruction is a jmpl instruction, and 0 otherwise.
+* ID_call_instr: a register that stores the value 1 if the instruction is a call instruction, and 0 otherwise.
+* ID_branch_instr: a register that stores the value 1 if the instruction is a branch instruction, and 0 otherwise.
+* ID_load_instr: a register that stores the value 1 if the instruction is a load instruction, and 0 otherwise.
+* ID_register_file_Enable: a register that stores the value 1 if the register file should be enabled, and 0 otherwise.
+* ID_data_mem_SE: a register that stores the value 1 if the data memory should be sign-extended, and 0 otherwise.
+* ID_data_mem_RW: a register that stores the value 1 if the data memory should be read from, and 0 otherwise.
+* ID_data_mem_Enable: a register that stores the value 1 if the data memory should be enabled, and 0 otherwise.
+* ID_data_mem_Size: a register that stores the size of the data memory.
+* I31: a register that stores the value of the 31st bit of the instruction.
+* I30: a register that stores the value of the 30th bit of the instruction.
+* I24: a register that stores the value of the 24th bit of the instruction.
+* I13: a register that stores the value of the 13th bit of the instruction.
+* ID_ALU_OP_instr: a register that stores the value of the ALU operation code in the instruction.
+* CC_Enable: a register that stores the value 1 if the condition codes should be enabled, and 0 otherwise.
+*/
 module control_unit(
     input [31:0] instr,
     input clk, clr, // clock and clear
@@ -435,13 +542,14 @@ module control_unit(
         instr_signals[17:14]  = ID_ALU_OP_instr;
         instr_signals[18]     = ID_branch_instr;
 
-        $display("\n\nInstructions: %b", instr);
-        $display("Control Unit Instruction Signals:");
+       
+        $display(">>> Control Unit Instruction Signals:\n------------------------------------------");
+        $display("Instructions found on CU: %b\n------------------------------------------", instr);
         $display("jmpl: %d | call: %b | load: %b | regfile E: %b | branch: %b | CC_E: %b\n-------------------------", ID_jmpl_instr, ID_call_instr, ID_load_instr, ID_register_file_Enable, ID_branch_instr, CC_Enable);
         $display("Data Memory Instructions from Control Unit:");
         $display("SE: %b | R/W: %b | E: %b | Size: %b\n-------------------------", ID_data_mem_SE, ID_data_mem_RW, ID_data_mem_Enable, ID_data_mem_Size);
         $display("Operand2 Handler and ALU Instructions from Control Unit:");
-        $display("I31: %b | I30: %b | I24: %b | I13: %b | ALU_OP: %b\n-------------------------", I31, I30, I24, I13, ID_ALU_OP_instr);
+        $display("I31: %b | I30: %b | I24: %b | I13: %b | ALU_OP: %b\n-------------------------\n\n", I31, I30, I24, I13, ID_ALU_OP_instr);
 
         end
     end
@@ -500,8 +608,8 @@ module pipeline_IF_ID (
             end
         end
 
-    $display("IF/ID Output Signals:");
-    $display("PC: %b | imm: %b | I29: %b | branch: %b | rs1: %b | rs2: %b | rd: %b | cond: %b | inst: %b", 
+    $display(">>> IF/ID Output Signals:\n------------------------------------------");
+    $display("PC: %d | imm: %b | I29: %b | branch: %b | rs1: %b | rs2: %b | rd: %b | cond: %b | inst: %b\n\n", 
              PC_ID_out_reg, I21_0_reg, I29_0_reg, I29_branch_instr_reg, I18_14_reg, I4_0_reg, I29_25_reg, I28_25_reg, instruction_reg);
     end
     assign PC_ID_out         = PC_ID_out_reg;       
@@ -560,9 +668,9 @@ module pipeline_ID_EX(
             end
         end
 
-    $display("ID/EX Output Signals:");
-    $display("PC: %b | EX_IS: %b | EX_ALU: % b | EX_control: %b | EX_RD: %b | EX_CC: %b", 
-             PC_ID_out_reg, EX_IS_instr_reg, EX_ALU_OP_instr_reg, EX_control_unit_instr_reg, EX_RD_instr_reg, EX_CC_Enable_instr_reg);
+    $display(">>> ID/EX Output Signals:\n------------------------------------------");
+    $display("PC: %b | EX_IS: %b | EX_ALU: %b | EX_control: %b | EX_RD: %b | EX_CC: %b\n", 
+            PC_ID_out_reg, EX_IS_instr_reg, EX_ALU_OP_instr_reg, EX_control_unit_instr_reg, EX_RD_instr_reg, EX_CC_Enable_instr_reg);
 
     end
 
@@ -615,8 +723,8 @@ module pipeline_EX_MEM(
             end
         end
     
-    $display("EX/MEM Output Signals:");
-    $display("DataInst: %b | OutHandler: %b | MEM_control: % b | MEM_RD: %b | PC_MEM: %b", 
+    $display(">>> EX/MEM Output Signals:\n------------------------------------------");
+    $display("DataInst: %b | OutHandler: %b | MEM_control: %b | MEM_RD: %b | PC_MEM: %b\n", 
              Data_Mem_instructions_reg, Output_Handler_instructions_reg, MEM_control_unit_instr_reg, MEM_RD_instr_reg, PC_MEM_out_reg);
     
     end
@@ -656,8 +764,8 @@ module pipeline_MEM_WB(
                 WB_Register_File_Enable_reg     = MEM_control_unit_instr;
             end
         end
-    $display("MEM/WB Output Signals:");
-    $display("WB_RD: %b | WB_out: %b | WB_reg_file: % b", 
+    $display(">>> MEM/WB Output Signals:\n------------------------------------------");
+    $display("WB_RD: %b | WB_out: %b | WB_reg_file: %b\n", 
              WB_RD_instr_reg, WB_RD_out_reg, WB_Register_File_Enable_reg);
     end
     assign WB_RD_instr              = WB_RD_instr_reg;
@@ -666,12 +774,11 @@ module pipeline_MEM_WB(
 endmodule
 
 
-module pipeline_test;
-
+module phase3Tester;
     // Instruction Memory stuff
     integer fi, fo, code, i; 
     reg [32:0] data;
-    reg [8:0] Address, Addr; 
+    reg [8:0] Addr; 
     wire [31:0] instruction;
 
     reg LE;
@@ -682,7 +789,6 @@ module pipeline_test;
     reg S; // To trigger the CU or something idfk
 
     wire [31:0] PC;
-    wire [31:0] PC_4;
     wire [31:0] nPC;
     wire [31:0] PC_ID;
     wire [31:0] PC_EX;
@@ -718,45 +824,45 @@ module pipeline_test;
 
     wire WB_Register_File_Enable;
 
+    // These are more for phase 4
+    reg [1:0] PC_MUX = 2'b00;
+    reg [31:0] TA;
+    reg [31:0] ALU_OUT;
+
+
     // Clock generator
     initial begin
         clr <= 1'b1;
         clk <= 1'b0;
         repeat(2) #2 clk = ~clk;
         clr <= 1'b0;
-        repeat(12) begin
-            #2 clk = ~clk;
-        end
+       forever #2 clk = ~clk;
     end
 
-    register nPC_reg(
-        .clk(clk),
-        .clr(clr),
-        .reset(reset),
-        .LE(LE),
-        .IN(PC_4),
-        .OUT(nPC)
+    PC_adder adder (
+        .PC_in(PC),
+        .PC_out(nPC)
     );
 
-    PC_adder adder(
-        .PC_in(nPC),
-        .PC_out(PC_4)
-    );
 
-    register PC_reg(
-        .clk(clk),
-        .clr(clr),
-        .reset(reset),
-        .LE(LE),
-        .IN(nPC),
-        .OUT(PC)
+    PC_nPC_Register PC_reg(
+        .clk        (clk),
+        .clr        (clr),
+        .reset      (reset),
+        .LE         (LE),
+        .nPC        (nPC),
+        .ALU_OUT    (ALU_OUT),
+        .TA         (TA),
+        .mux_select (PC_MUX),
+        .OUT        (PC)
+
     );
 
 
 
     rom_512x8 ram1 (
-        instruction,
-        Address
+        instruction, // OUT
+        PC[7:0]      // IN
     );
 
 
@@ -770,111 +876,101 @@ module pipeline_test;
             Addr = Addr + 1;
         end
         $fclose(fi);
+        Addr = 9'b000000000;
+        
     end
 
 
 
-    // pipeline_IF_ID IF_ID(
-    //     .PC                             (nPC),
-    //     .instruction                    (instruction),
-    //     .reset                          (reset), 
-    //     .LE                             (LE), 
-    //     .clk                            (clk), 
-    //     .clr                            (clr),
+    pipeline_IF_ID IF_ID(
+        .PC                             (PC),
+        .instruction                    (instruction),
+        .reset                          (reset), 
+        .LE                             (LE), 
+        .clk                            (clk), 
+        .clr                            (clr),
 
-    //     .PC_ID_out                      (PC_ID),
-    //     .I21_0                          (Imm22),
-    //     .I29_0                          (I29_0),
-    //     .I29_branch_instr               (I29_branch_instr),
-    //     .I18_14                         (rs1),
-    //     .I4_0                           (rs2),
-    //     .I29_25                         (rd),
-    //     .I28_25                         (cond),
-    //     .instruction_out                (instruction_out) 
-    // );
+        .PC_ID_out                      (PC_ID),
+        .I21_0                          (Imm22),
+        .I29_0                          (I29_0),
+        .I29_branch_instr               (I29_branch_instr),
+        .I18_14                         (rs1),
+        .I4_0                           (rs2),
+        .I29_25                         (rd),
+        .I28_25                         (cond),
+        .instruction_out                (instruction_out) 
+    );
 
-    // control_unit CU (
-    //     .clk(clk),
-    //     .clr(clr),
-    //     .instr(instruction_out),
+    control_unit CU (
+        .clk(clk),
+        .clr(clr),
+        .instr(instruction_out),
 
-    //     .instr_signals(ID_CU)
-    // );
+        .instr_signals(ID_CU)
+    );
 
 
+    pipeline_ID_EX ID_EX(
+         .PC                            (PC_ID),
+         .clk                           (clk),
+         .clr                           (clr),
+         .ID_control_unit_instr         (ID_CU[17:0]),
+         .ID_RD_instr                   (RD_EX),
 
-    // pipeline_ID_EX ID_EX(
-    //      .PC                            (PC_ID),
-    //      .clk                           (clk),
-    //      .clr                           (clr),
-    //      .ID_control_unit_instr         (ID_CU[17:0]),
-    //      .ID_RD_instr                   (RD_EX),
+        // OUTPUT
+        .PC_EX_out                      (PC_EX),
+        .EX_IS_instr                    (IS),
+        .EX_ALU_OP_instr                (ALU_OP),
+        .EX_RD_instr                    (RD_EX),
+        .EX_CC_Enable_instr             (CC_Enable),
+        .EX_control_unit_instr          (EX_CU)
+    );
 
-    //     // OUTPUT
-    //     .PC_EX_out                      (PC_EX),
-    //     .EX_IS_instr                    (IS),
-    //     .EX_ALU_OP_instr                (ALU_OP),
-    //     .EX_RD_instr                    (RD_EX),
-    //     .EX_CC_Enable_instr             (CC_Enable),
-    //     .EX_control_unit_instr          (EX_CU)
-    // );
+    pipeline_EX_MEM EX_MEM(
+        .reset                          (reset),
+        .clk                            (clk), 
+        .clr                            (clr),
+        .EX_control_unit_instr          (EX_CU),
+        .PC                             (PC_EX),
+        .EX_RD_instr                    (RD_EX),
 
-    // pipeline_EX_MEM EX_MEM(
-    //     .reset                          (reset),
-    //     .clk                            (clk), 
-    //     .clr                            (clr),
-    //     .EX_control_unit_instr          (EX_CU),
-    //     .PC                             (PC_EX),
-    //     .EX_RD_instr                    (RD_EX),
+        .Data_Mem_instructions          (DataMemInstructions),
+        .Output_Handler_instructions    (OutputHandlerInstructions),
+        .MEM_control_unit_instr         (MEM_CU),
+        .PC_MEM_out                     (PC_MEM),
+        .MEM_RD_instr                   (RD_MEM)
+    );
 
-    //     .Data_Mem_instructions          (DataMemInstructions),
-    //     .Output_Handler_instructions    (OutputHandlerInstructions),
-    //     .MEM_control_unit_instr         (MEM_CU),
-    //     .PC_MEM_out                     (PC_MEM),
-    //     .MEM_RD_instr                   (RD_MEM)
-    // );
-
-    // pipeline_MEM_WB MEM_WB(
-    //     .reset                          (reset),
-    //     .clk                            (clk),
-    //     .clr                            (clr),
-    //     .MEM_RD_instr                   (RD_MEM),
-    //     .MUX_out                        (OutputMUX),
-    //     .MEM_control_unit_instr         (MEM_CU),
-    //     .WB_RD_instr                    (RD_WB),
-    //     .WB_RD_out                      (WB_RD_out),
-    //     .WB_Register_File_Enable        (WB_Register_File_Enable) 
-    // );
+    pipeline_MEM_WB MEM_WB(
+        .reset                          (reset),
+        .clk                            (clk),
+        .clr                            (clr),
+        .MEM_RD_instr                   (RD_MEM),
+        .MUX_out                        (OutputMUX),
+        .MEM_control_unit_instr         (MEM_CU),
+        .WB_RD_instr                    (RD_WB),
+        .WB_RD_out                      (WB_RD_out),
+        .WB_Register_File_Enable        (WB_Register_File_Enable) 
+    );
 
     initial begin
         #52;
         $finish;
     end 
-
+    reg [9:0] wow;
     initial begin
-        $monitor("PC: %d | nPC: %d | PC+4: %d", PC, nPC, PC_4);
-        // $monitor("Testing a pipeline baseline of sorts: enable: %b | reset: %b | PC: %d | PC_ID: %d | PC_EX: %d | PC_MEM: %d | time %d | clk: %d clr: %d\n----- Instruction: %b ------", enable, reset, PC, PC_ID, PC_EX, PC_MEM, $time, clk, clr, instruction_out);
+
+        $monitor("Monitoring PCs Clocks and Claks:\n------------------------------------------\nLE: %b | reset: %b | PC: %d | time %d | clk: %d clr: %d | MEM: %b\n\n", LE, reset, PC, $time, clk, clr, instruction);
+        // $monitor("Baseline: \n---------------------\nenable: %b | reset: %b | PC: %d | nPC: %d | PC_ID: %d | PC_EX: %d | PC_MEM: %d | time %d | clk: %d clr: %d\n----- Instruction: %b ----- Addr: %d\n\n", enable, reset, PC, nPC, PC_ID, PC_EX, PC_MEM, $time, clk, clr, instruction_out, Address);
     end
 
 
     initial begin
         LE = 1'b1;
-        Address = 9'b000000000;
-        // PC = 32'd21;
-        reset = 1'b0;
-        enable = 1'b0;
-        #4;
-        // PC = 32'd21;
-        reset = 1'b0;
-        enable = 1'b1;
-        #40;
-
-
-        
-        // PC = 32'd21;
-        reset = 1'b1;
-        enable = 1'b1;
-        #4;
+        reset = 1;
+        #8;
+        reset = 0;
+        #12;
     end
 
 endmodule
