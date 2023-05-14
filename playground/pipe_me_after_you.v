@@ -417,6 +417,8 @@ module control_unit(
         instr_signals[17:14]  = ID_ALU_OP_instr;
         instr_signals[18]     = ID_branch_instr;
 
+
+        $display("\n\nInstructions: %b", instr);
         $display("Control Unit Instruction Signals:");
         $display("jmpl: %d | call: %b | load: %b | regfile E: %b | branch: %b | CC_E: %b\n-------------------------", ID_jmpl_instr, ID_call_instr, ID_load_instr, ID_register_file_Enable, ID_branch_instr, CC_Enable);
         $display("Data Memory Instructions from Control Unit:");
@@ -713,6 +715,10 @@ module pipeline_test;
     end
 
 
+    register PC_reg();
+
+    register nPC_reg();
+
     PC_adder adder(
         .PC_in(PC),
         .PC_out(nPC)
@@ -722,6 +728,21 @@ module pipeline_test;
         instruction,
         Address
     );
+
+
+    initial begin
+        fi = $fopen("../precharge/sparc-instructions-precharge.txt","r");
+        Addr = 9'b000000000;
+        while (!$feof(fi)) begin
+            code = $fscanf(fi, "%b", data);
+            // $display("---- %b ----\n", data);
+            ram1.Mem[Addr] = data;
+            Addr = Addr + 1;
+        end
+        $fclose(fi);
+    end
+
+
 
     pipeline_IF_ID IF_ID(
         .PC                             (nPC),
@@ -801,20 +822,21 @@ module pipeline_test;
     end 
 
     initial begin
-        $monitor("Testing a pipeline baseline of sorts: enable: %b | reset: %b | PC: %d | PC_ID: %d | PC_EX: %d | PC_MEM: %d | time %d | clk: %d clr: %d", enable, reset, PC, PC_ID, PC_EX, PC_MEM, $time, clk, clr);
+        $monitor("Testing a pipeline baseline of sorts: enable: %b | reset: %b | PC: %d | PC_ID: %d | PC_EX: %d | PC_MEM: %d | time %d | clk: %d clr: %d\n----- Instruction: %b ------", enable, reset, PC, PC_ID, PC_EX, PC_MEM, $time, clk, clr, instruction_out);
     end
 
 
     initial begin
-        PC = 32'd21;
+        Address = 9'b000000000;
+        // PC = 32'd21;
         reset = 1'b0;
         enable = 1'b0;
         #4;
-        PC = 32'd21;
+        // PC = 32'd21;
         reset = 1'b0;
         enable = 1'b1;
         #12;
-        PC = 32'd21;
+        // PC = 32'd21;
         reset = 1'b1;
         enable = 1'b1;
         #4;
