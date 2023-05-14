@@ -61,7 +61,12 @@ module pipeline_IF_ID (
     assign I4_0              = I4_0_reg;
     assign I29_25            = I29_25_reg;   
     assign I28_25            = I28_25_reg;   
-    assign instruction_out   = instruction_reg;           
+    assign instruction_out   = instruction_reg;     
+    
+    $display("IF/ID Output Signals:");
+    $display("PC: %b | imm: %b | I29: %b | branch: %b | rs1: %b | rs2: %b | rd: %b | cond: %b | inst: %b", 
+             PC_ID_out_reg, I21_0_reg, I29_0_reg, I29_branch_instr_reg, I18_14_reg, I4_0_reg, I29_25_reg, I28_25_reg, instruction_reg);
+    
 endmodule
 
 
@@ -114,6 +119,11 @@ module pipeline_ID_EX(
     assign  EX_control_unit_instr       = EX_control_unit_instr_reg;
     assign  EX_RD_instr                 = EX_RD_instr_reg;
     assign  EX_CC_Enable_instr          = EX_CC_Enable_instr_reg;
+    
+    $display("ID/EX Output Signals:");
+    $display("PC: %b | EX_IS: %b | EX_ALU: % b | EX_control: %b | EX_RD: %b | EX_CC: %b", 
+             PC_ID_out_reg, EX_IS_instr_reg, EX_ALU_OP_instr_reg, EX_control_unit_instr_reg, EX_RD_instr_reg, EX_CC_Enable_instr_reg);
+
 endmodule
 
 
@@ -163,6 +173,12 @@ module pipeline_EX_MEM(
     assign MEM_control_unit_instr       = MEM_control_unit_instr_reg;
     assign MEM_RD_instr                 = MEM_RD_instr_reg;
     assign PC_MEM_out                   = PC_MEM_out_reg;
+    
+    
+    $display("EX/MEM Output Signals:");
+    $display("DataInst: %b | OutHandler: %b | MEM_control: % b | MEM_RD: %b | PC_MEM: %b, 
+             Data_Mem_instructions_reg, Output_Handler_instructions_reg, MEM_control_unit_instr_reg, MEM_RD_instr_reg, PC_MEM_out_reg);
+    
 endmodule
 
 
@@ -201,7 +217,10 @@ module pipeline_MEM_WB(
     assign WB_RD_instr              = WB_RD_instr_reg;
     assign WB_RD_out                = WB_RD_out_reg;
     assign WB_Register_File_Enable  = WB_Register_File_Enable_reg;
-
+    
+    $display("MEM/WB Output Signals:");
+    $display("WB_RD: %b | WB_out: %b | WB_reg_file: % b, 
+             WB_RD_instr_reg, WB_RD_out_reg, WB_Register_File_Enable_reg);
 
 endmodule
 
@@ -269,6 +288,7 @@ module pipeline_test;
         .LE                             (LE), 
         .clk                            (clk), 
         .clr                            (clr),
+        
         .PC_ID_out                      (PC_ID),
         .I21_0                          (Imm22),
         .I29_0                          (I29_0),
