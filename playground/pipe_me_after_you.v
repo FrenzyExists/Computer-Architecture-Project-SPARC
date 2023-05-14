@@ -176,7 +176,7 @@ module pipeline_EX_MEM(
     
     
     $display("EX/MEM Output Signals:");
-    $display("DataInst: %b | OutHandler: %b | MEM_control: % b | MEM_RD: %b | PC_MEM: %b, 
+    $display("DataInst: %b | OutHandler: %b | MEM_control: % b | MEM_RD: %b | PC_MEM: %b", 
              Data_Mem_instructions_reg, Output_Handler_instructions_reg, MEM_control_unit_instr_reg, MEM_RD_instr_reg, PC_MEM_out_reg);
     
 endmodule
