@@ -219,7 +219,7 @@ module pipeline_MEM_WB(
     assign WB_Register_File_Enable  = WB_Register_File_Enable_reg;
     
     $display("MEM/WB Output Signals:");
-    $display("WB_RD: %b | WB_out: %b | WB_reg_file: % b, 
+    $display("WB_RD: %b | WB_out: %b | WB_reg_file: % b", 
              WB_RD_instr_reg, WB_RD_out_reg, WB_Register_File_Enable_reg);
 
 endmodule
