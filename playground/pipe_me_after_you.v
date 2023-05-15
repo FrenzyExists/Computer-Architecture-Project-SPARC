@@ -1,28 +1,6 @@
 `timescale 1ns / 1ns
 
-/**
- * ROM 512x8-bit module.
- *
- * This module implements a 512x8-bit ROM using Verilog. The ROM stores data in an
- * array of 512 8-bit locations, which can be accessed using an 8-bit address input.
- * The data output is a 32-bit value obtained by concatenating four adjacent 8-bit
- * values from the memory array.
- *
- * Inputs:
- *  - Address [7:0]: 8-bit input used to address a location in the memory array.
- *
- * Outputs:
- *  - DataOut [31:0]: 32-bit output obtained by concatenating four adjacent 8-bit
- *                    values from the memory array.
- *
- * Implementation details:
- *  - The module uses a memory array of 512 8-bit locations to store data.
- *  - The memory array is declared as a Verilog reg [7:0] type with a range of 0 to 511.
- *  - The DataOut output is computed using a concatenation of four adjacent 8-bit values
- *    from the memory array, starting at the address specified by the Address input.
- *  - The always@(Address) block is used to update the DataOut output whenever the
- *    Address input changes.
- */
+
 module rom_512x8 (output reg [31:0] DataOut, input [7:0] Address);
     reg [7:0] Mem[0:511];       //512 8bit locations
     always@(Address)            //Loop when Address changes
@@ -57,7 +35,6 @@ module PC_adder (
     always @(*) begin
         PC_out = PC_in + 4;
     end
-
 endmodule
 
 
@@ -396,10 +373,6 @@ module control_unit(
                                 CC_Enable                   = 1'b0;
                                 ID_data_mem_SE              = 1'b0;
 
-                                // a <= instr[13];
-                                // if (a == 1'b1) ;// normal r2
-                                // else if (a == 1'b0) ID_data_mem_SE <= 1'b1;// with sign extend
-
                                 ID_data_mem_RW              = 1'b0;
                                 ID_data_mem_Enable          = 1'b1;
                                 ID_data_mem_Size            = 2'b10;                            
@@ -506,8 +479,8 @@ module control_unit(
                                 ID_register_file_Enable     = 1'b0;
 
                                 ID_data_mem_SE              = 1'b0;
-                                ID_data_mem_RW              = 1'b0;
-                                ID_data_mem_Enable          = 1'b0;
+                                ID_data_mem_RW              = 1'b1;
+                                ID_data_mem_Enable          = 1'b1;
                                 ID_data_mem_Size            = 2'b0;
                             end
                         endcase
@@ -621,8 +594,6 @@ module pipeline_IF_ID (
     assign I29_25            = I29_25_reg;   
     assign I28_25            = I28_25_reg;   
     assign instruction_out   = instruction_reg;     
-    
-
 endmodule
 
 
@@ -669,7 +640,7 @@ module pipeline_ID_EX(
         end
 
     $display(">>> ID/EX Output Signals:\n------------------------------------------");
-    $display("PC: %b | EX_IS: %b | EX_ALU: %b | EX_control: %b | EX_RD: %b | EX_CC: %b\n", 
+    $display("PC: %d | EX_IS: %b | EX_ALU: %b | EX_control: %b | EX_RD: %b | EX_CC: %b\n", 
             PC_ID_out_reg, EX_IS_instr_reg, EX_ALU_OP_instr_reg, EX_control_unit_instr_reg, EX_RD_instr_reg, EX_CC_Enable_instr_reg);
 
     end
@@ -765,8 +736,8 @@ module pipeline_MEM_WB(
             end
         end
     $display(">>> MEM/WB Output Signals:\n------------------------------------------");
-    $display("WB_RD: %b | WB_out: %b | WB_reg_file: %b\n", 
-             WB_RD_instr_reg, WB_RD_out_reg, WB_Register_File_Enable_reg);
+    $display("WB_RD: %b | WB_out: %b | WB_reg_file: %b | MUX OUT: %b\n", 
+             WB_RD_instr_reg, WB_RD_out_reg, WB_Register_File_Enable_reg, MUX_out);
     end
     assign WB_RD_instr              = WB_RD_instr_reg;
     assign WB_RD_out                = WB_RD_out_reg;
@@ -859,7 +830,6 @@ module phase3Tester;
     );
 
 
-
     rom_512x8 ram1 (
         instruction, // OUT
         PC[7:0]      // IN
@@ -881,7 +851,6 @@ module phase3Tester;
     end
 
 
-
     pipeline_IF_ID IF_ID(
         .PC                             (PC),
         .instruction                    (instruction),
@@ -900,6 +869,7 @@ module phase3Tester;
         .I28_25                         (cond),
         .instruction_out                (instruction_out) 
     );
+
 
     control_unit CU (
         .clk(clk),
@@ -926,6 +896,7 @@ module phase3Tester;
         .EX_control_unit_instr          (EX_CU)
     );
 
+
     pipeline_EX_MEM EX_MEM(
         .reset                          (reset),
         .clk                            (clk), 
@@ -946,7 +917,7 @@ module phase3Tester;
         .clk                            (clk),
         .clr                            (clr),
         .MEM_RD_instr                   (RD_MEM),
-        .MUX_out                        (OutputMUX),
+        .MUX_out                        (PC_MEM), // (OutputMUX),
         .MEM_control_unit_instr         (MEM_CU),
         .WB_RD_instr                    (RD_WB),
         .WB_RD_out                      (WB_RD_out),
@@ -964,7 +935,6 @@ module phase3Tester;
         // $monitor("Baseline: \n---------------------\nenable: %b | reset: %b | PC: %d | nPC: %d | PC_ID: %d | PC_EX: %d | PC_MEM: %d | time %d | clk: %d clr: %d\n----- Instruction: %b ----- Addr: %d\n\n", enable, reset, PC, nPC, PC_ID, PC_EX, PC_MEM, $time, clk, clr, instruction_out, Address);
     end
 
-
     initial begin
         LE = 1'b1;
         reset = 1;
@@ -972,5 +942,4 @@ module phase3Tester;
         reset = 0;
         #12;
     end
-
 endmodule
