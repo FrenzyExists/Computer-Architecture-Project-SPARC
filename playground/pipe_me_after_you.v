@@ -597,6 +597,45 @@ module pipeline_IF_ID (
 endmodule
 
 
+/*
+ * Module: pipeline_ID_EX
+ * 
+ * Description:
+ *   This module represents the pipeline stage between the Instruction Decode (ID) and
+ *   Execute (EX) stages. It is responsible for forwarding relevant signals from the ID
+ *   stage to the EX stage.
+ * 
+ * Inputs:
+ *   - reset: Asynchronous reset signal
+ *   - clk: Clock signal
+ *   - clr: Clear signal
+ *   - ID_control_unit_instr: Control unit instructions from the ID stage
+ *   - PC: Program Counter value
+ *   - ID_RD_instr: RD instructions from the ID stage
+ * 
+ * Outputs:
+ *   - PC_EX_out: Program Counter output for the EX stage
+ *   - EX_IS_instr: Instruction bits used by the operand handler in the EX stage
+ *   - EX_ALU_OP_instr: Opcode used by the ALU in the EX stage
+ *   - EX_RD_instr: RD instructions for the EX stage
+ *   - EX_CC_Enable_instr: Control signal for enabling condition code updates in the EX stage
+ *   - EX_control_unit_instr: Remaining control unit instructions for the EX stage
+ * 
+ * Registers:
+ *   - PC_ID_out_reg: Register for storing the PC value from the ID stage
+ *   - EX_IS_instr_reg: Register for storing the instruction bits used by the operand handler
+ *   - EX_ALU_OP_instr_reg: Register for storing the ALU opcode
+ *   - EX_RD_instr_reg: Register for storing the RD instructions
+ *   - EX_CC_Enable_instr_reg: Register for storing the control signal for enabling condition code updates
+ *   - EX_control_unit_instr_reg: Register for storing the remaining control unit instructions
+ * 
+ * Operation:
+ *   - On the positive edge of the clock and when the clear signal is low, the registers in
+ *     the module are updated based on the inputs.
+ *   - If the reset signal is high, the registers are reset to their default values.
+ *   - The relevant signals are forwarded to the output ports.
+ *   - The module also displays the output signals using $display.
+ */
 module pipeline_ID_EX(
     input  wire reset, clk, clr,
     input  wire [17:0] ID_control_unit_instr,      // Control Unit Instructions
@@ -615,7 +654,7 @@ module pipeline_ID_EX(
     reg [31:0] PC_ID_out_reg;
     reg [3:0]  EX_IS_instr_reg;
     reg [3:0]  EX_ALU_OP_instr_reg;
-    reg [8:0] EX_control_unit_instr_reg;
+    reg [8:0]  EX_control_unit_instr_reg;
     reg [5:0]  EX_RD_instr_reg;
     reg        EX_CC_Enable_instr_reg;
 
@@ -625,14 +664,14 @@ module pipeline_ID_EX(
                 PC_ID_out_reg               = 32'b0;
                 EX_IS_instr_reg             = 4'b0;
                 EX_ALU_OP_instr_reg         = 4'b0;
-                EX_control_unit_instr_reg   = 11'b0;
+                EX_control_unit_instr_reg   = 8'b0;
                 EX_RD_instr_reg             = 5'b0;
                 EX_CC_Enable_instr_reg      = 1'b0;
             end else begin
                 PC_ID_out_reg               = PC;
                 EX_IS_instr_reg             = ID_control_unit_instr[13:10];
                 EX_ALU_OP_instr_reg         = ID_control_unit_instr[17:14];
-                EX_RD_instr_reg             = EX_RD_instr;
+                EX_RD_instr_reg             = ID_RD_instr;
                 EX_CC_Enable_instr_reg      = ID_control_unit_instr[9];
                 
                 EX_control_unit_instr_reg   = ID_control_unit_instr[8:0];
@@ -640,9 +679,12 @@ module pipeline_ID_EX(
         end
 
     $display(">>> ID/EX Output Signals:\n------------------------------------------");
-    $display("PC: %d | EX_IS: %b | EX_ALU: %b | EX_control: %b | EX_RD: %b | EX_CC: %b\n", 
-            PC_ID_out_reg, EX_IS_instr_reg, EX_ALU_OP_instr_reg, EX_control_unit_instr_reg, EX_RD_instr_reg, EX_CC_Enable_instr_reg);
-
+    $display("PC: %d | EX_IS: %b | EX_ALU: %b | EX_RD: %b | EX_CC: %b", 
+            PC_ID_out_reg, EX_IS_instr_reg, EX_ALU_OP_instr_reg, EX_RD_instr_reg, EX_CC_Enable_instr_reg);
+    $display("Signals that are forwarded:\n---------------------\nID jmpl: %b | ID call: %b | ID load: %b | ID Reg Enable: %b | ID Mem SE: %b | ID MEM R/W: %b | ID MEM E: %b | ID MEM Size: %b\n\n",
+        EX_control_unit_instr_reg[0], EX_control_unit_instr_reg[1], EX_control_unit_instr_reg[2], EX_control_unit_instr_reg[3], EX_control_unit_instr_reg[4], EX_control_unit_instr_reg[5],
+        EX_control_unit_instr_reg[6], EX_control_unit_instr_reg[8:7]
+    );
     end
 
     assign  PC_EX_out                   = PC_ID_out_reg;
@@ -667,7 +709,7 @@ module pipeline_EX_MEM(
     output wire [4:0]  MEM_RD_instr
 );
 
-    reg [3:0]   Data_Mem_instructions_reg;
+    reg [4:0]   Data_Mem_instructions_reg;
     reg [2:0]   Output_Handler_instructions_reg;
     reg         MEM_control_unit_instr_reg;
     reg [4:0]   MEM_RD_instr_reg;
@@ -697,7 +739,10 @@ module pipeline_EX_MEM(
     $display(">>> EX/MEM Output Signals:\n------------------------------------------");
     $display("DataInst: %b | OutHandler: %b | MEM_control: %b | MEM_RD: %b | PC_MEM: %b\n", 
              Data_Mem_instructions_reg, Output_Handler_instructions_reg, MEM_control_unit_instr_reg, MEM_RD_instr_reg, PC_MEM_out_reg);
-    
+    $display("Signals that are forwarded to MEM:\n---------------------\nMEM jmpl: %b | MEM call: %b | MEM load: %b | MEM Reg Enable: %b | EX Mem SE: %b | EX MEM R/W: %b | EX MEM E: %b | EX MEM Size: %b\n\n",
+        Output_Handler_instructions_reg[0], Output_Handler_instructions_reg[1], Output_Handler_instructions_reg[2], MEM_control_unit_instr_reg, 
+        Data_Mem_instructions_reg[0], Data_Mem_instructions_reg[1], Data_Mem_instructions_reg[2], Data_Mem_instructions_reg[4:3]
+    );
     end
     assign Data_Mem_instructions        = Data_Mem_instructions_reg;
     assign Output_Handler_instructions  = Output_Handler_instructions_reg;
@@ -930,8 +975,9 @@ module phase3Tester;
     end 
     reg [9:0] wow;
     initial begin
+        // $monitor("\n\n TIME: %d | CLK: %b\nData Out (Memory): %b | PC: %d | nPC: %d | Reset: %b\n--->IF ID out: %b<---\n--------Control Unit Outputs Signals-------- \n\nID jmpl: %d | ID call: %b | ID load: %b | ID regfile E: %b | ID branch: %b | ID CC_E: %b ID_shift_imm: %b | ID_load_instr: %b | ID_RF_enable: %b | ID_Enable_instr: %b | ID_ReadWrite_instr: %b | ID_Size_instr: %b | bit_S: %b | ID_shiftType: %b | ALU_op: %b | ID_B_instr: %b | ID_BL_instr: %b \n\n-> Mux CU Output: %b \n---> Pipeline ID-EX Output: %b | B_instr: %b | BL_instr: %b \n-----> Pipeline EX-MEM Output: %b | B_instr: %b | BL_instr: %b \n--------> Pipeline MEM-WB Output: %b | B_instr: %b | BL_instr: %b", $time, clk, DataOut, Qs, reset, instruction_to_CU, cu_out[0], cu_out[1], cu_out[2], cu_out[3], cu_out[4], cu_out[6:5], cu_out[7], cu_out[9:8], cu_out[13:10], b_bl_signals[0], b_bl_signals[1], OutputHandlerInstructions[0], OutputHandlerInstructions[1], OutputHandlerInstructions[2], EX_signals_out, b_bl_signals[0], b_bl_signals[1], MEM_signals_out, b_bl_signals[0], b_bl_signals[1], WB_signals_out, b_bl_signals[0], b_bl_signals[1]);
 
-        $monitor("Monitoring PCs Clocks and Claks:\n------------------------------------------\nLE: %b | reset: %b | PC: %d | time %d | clk: %d clr: %d | MEM: %b\n\n", LE, reset, PC, $time, clk, clr, instruction);
+        // $monitor("Monitoring PCs Clocks and Claks:\n------------------------------------------\ntime %d | LE: %b | reset: %b | PC: %d | nPC: %b | clk: %d clr: %d | Instructions: %b\n----> IF/ID \n\n", LE, reset, PC, $time, clk, clr, instruction);
         // $monitor("Baseline: \n---------------------\nenable: %b | reset: %b | PC: %d | nPC: %d | PC_ID: %d | PC_EX: %d | PC_MEM: %d | time %d | clk: %d clr: %d\n----- Instruction: %b ----- Addr: %d\n\n", enable, reset, PC, nPC, PC_ID, PC_EX, PC_MEM, $time, clk, clr, instruction_out, Address);
     end
 
