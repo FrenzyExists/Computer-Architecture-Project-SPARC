@@ -23,6 +23,7 @@ build_dir="build"
 files=("alu" "operand-handler" "condition-handler" "reset-handler" "npc-pc-handler")
 files_no_tester=("instruction-memory")
 files_with_precharge=("data-memory")
+dependencies=("muxes")
 # #################################
 
 undone_stuff=("pipeline-registers" "register-file" "data-memory" "instruction-memory" "control-unit" "hazard-unit" )
@@ -55,6 +56,14 @@ Options:
 }
 
 build_all() {
+
+    printf "${cyan}%s\n" " _           _ _     _                       _       _           "
+    printf "${cyan}%s\n" "| |__  _   _(_) | __| |  _ __ ___   ___   __| |_   _| | ___  ___ "
+    printf "${yellow}%s\n" "| '_ \| | | | | |/ _\` | | '_ \` _ \ / _ \ / _\` | | | | |/ _ \/ __|"
+    printf "${magenta}%s\n" "| |_) | |_| | | | (_| | | | | | | | (_) | (_| | |_| | |  __/\__ \\"
+    printf "${magenta}%s\n${reset}" "|_.__/ \__,_|_|_|\__,_| |_| |_| |_|\___/ \__,_|\__,_|_|\___||___/"
+                                                                 
+
     if ! test -d "$build_dir"; then
         mkdir "$build_dir"
     fi
@@ -80,13 +89,10 @@ build_all() {
         iverilog -o "$build_dir/$file.vvp" "$verilog_dir/$file.v" "$verilog_dir/${file}-precharge.v"
         printf "\nDone :3\n"
     done
-
-
 }
 
 
 list_modules() {
-
     printf "${cyan}%s\n" "  _    _    _   _             __  __         _      _        "
     printf "${cyan}%s\n" " | |  (_)__| |_(_)_ _  __ _  |  \/  |___  __| |_  _| |___ ___"
     printf "${yellow}%s\n" " | |__| (_-<  _| | ' \/ _\` | | |\/| / _ \/ _\` | || | / -_|_-<"
@@ -111,10 +117,26 @@ execute-all() {
         printf "build file not found, please run the script with the --build-all flag and then execute\n\n"
         exit
     fi
-    printf "Executing ALU\n--------------\n"
-    $current_dir/build/alu.vvp
 
-    printf "\n\nExecuting Source Operand2 Handler\n------------------\n"
+    # local verilog_file="$1"
+    local vvp_file="${verilog_file%.v}.vvp"
+    local valid_files=("file1.v" "file2.v" "file3.v")  # Add your valid Verilog file names here
+
+    # Verify if the specified Verilog file is in the valid files array
+    if [[ " ${valid_files[@]} " =~ " $verilog_file " ]]; then
+        if [ -f "$vvp_file" ]; then
+            vvp "$vvp_file"
+        else
+            echo "Error: Could not find VVP file for $verilog_file"
+        fi
+    else
+        echo "Error: Invalid Verilog file specified"
+    fi
+
+    # printf "Executing ALU\n--------------\n"
+    # "$current_dir"/build/alu.vvp
+
+    # printf "\n\nExecuting Source Operand2 Handler\n------------------\n"
 
 
 }
@@ -134,6 +156,9 @@ analize_plz() {
     - Power Analysis  ==> Measures power consumption of design
     - Fault Analysis  ==> Makes sure shit doesn't fuck up
     "
+    # sleep 1sec
+
+    printf "Select the analysis you want!\n"
 
 }
 
