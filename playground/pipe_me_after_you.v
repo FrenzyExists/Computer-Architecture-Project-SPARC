@@ -617,7 +617,7 @@ module pipeline_ID_EX(
     reg [31:0] PC_ID_out_reg;
     reg [3:0]  EX_IS_instr_reg;
     reg [3:0]  EX_ALU_OP_instr_reg;
-    reg [8:0] EX_control_unit_instr_reg;
+    reg [8:0]  EX_control_unit_instr_reg;
     reg [5:0]  EX_RD_instr_reg;
     reg        EX_CC_Enable_instr_reg;
 
@@ -967,9 +967,9 @@ module phase3Tester;
 
     end    
 
-    always @(posedge clk) begin
+    always @(posedge clk, negedge clr) begin
     
-    $display("\n\n---------------------\nenable: %b | reset: %b | PC: %d | nPC: %d | time %d | clk: %d clr: %d\n----- Instruction: %b ----- ", enable, reset, PC, nPC, $time, clk, clr, instruction_out);
+    $display("\n\n---------------------\nenable: %b | reset: %b | PC: %d | nPC: %d | time %d | clk: %d clr: %d\n----- Instruction: %b ----- \n ", enable, reset, PC, nPC, $time, clk, clr, instruction_out);
 
 
     $display(">>> ID Control Signals:\n------------------------------------------");
@@ -977,12 +977,12 @@ module phase3Tester;
             PC_ID, Imm22, I29_0, I29_branch_instr, rs1, rs2, rd, cond, instruction_out);
 
     $display(">>> EX Control Signals:\n------------------------------------------");
-    $display("PC_EX: %d | EX_IS: %b | EX_ALU: %b | EX_control: %b | EX_RD: %b | EX_CC: %b\n", 
-            PC_EX, IS, ALU_OP, EX_CU, RD_EX, CC_Enable);
+    $display("PC_EX: %d | EX_IS: %b | jmpl: %b | call: %b | load: %b | EX_ALU: %b | EX_control: %b | EX_RD: %b | EX_CC: %b\n", 
+            PC_EX, IS, EX_CU[0], EX_CU[1], EX_CU[2], ALU_OP, EX_CU, RD_EX, CC_Enable);
 
     $display(">>> MEM Control Signals:\n------------------------------------------");
-    $display("PC_MEM: %d | DataInst: %b | OutHandler: %b | MEM_control: %b | MEM_RD: %b\n", 
-            PC_MEM, DataMemInstructions, OutputHandlerInstructions, MEM_CU, RD_MEM);
+    $display("PC_MEM: %d | DataInst: %b | jmpl: %b | call: %b | load: %b | MEM_control: %b | MEM_RD: %b\n", 
+            PC_MEM, DataMemInstructions, OutputHandlerInstructions[0],OutputHandlerInstructions[1], OutputHandlerInstructions[2], MEM_CU, RD_MEM);
 
     $display(">>> WB Control Signals:\n------------------------------------------");
     $display("WB_RD: %b | WB_out: %b | WB_reg_file: %b | MUX OUT: %b\n", 
