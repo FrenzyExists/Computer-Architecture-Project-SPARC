@@ -516,13 +516,13 @@ module control_unit(
         instr_signals[18]     = ID_branch_instr;
 
        
-        $display(">>> Control Unit Instruction Signals:\n------------------------------------------");
-        $display("Instructions found on CU: %b\n------------------------------------------", instr);
-        $display("jmpl: %d | call: %b | load: %b | regfile E: %b | branch: %b | CC_E: %b\n-------------------------", ID_jmpl_instr, ID_call_instr, ID_load_instr, ID_register_file_Enable, ID_branch_instr, CC_Enable);
-        $display("Data Memory Instructions from Control Unit:");
-        $display("SE: %b | R/W: %b | E: %b | Size: %b\n-------------------------", ID_data_mem_SE, ID_data_mem_RW, ID_data_mem_Enable, ID_data_mem_Size);
-        $display("Operand2 Handler and ALU Instructions from Control Unit:");
-        $display("I31: %b | I30: %b | I24: %b | I13: %b | ALU_OP: %b\n-------------------------\n\n", I31, I30, I24, I13, ID_ALU_OP_instr);
+         //$display(">>> Control Unit Instruction Signals:\n------------------------------------------");
+         //$display("Instructions found on CU: %b\n------------------------------------------", instr);
+         //$display("jmpl: %d | call: %b | load: %b | regfile E: %b | branch: %b | CC_E: %b\n-------------------------", ID_jmpl_instr, ID_call_instr, ID_load_instr, ID_register_file_Enable, ID_branch_instr, CC_Enable);
+        // $display("Data Memory Instructions from Control Unit:");
+        // $display("SE: %b | R/W: %b | E: %b | Size: %b\n-------------------------", ID_data_mem_SE, ID_data_mem_RW, ID_data_mem_Enable, ID_data_mem_Size);
+        // $display("Operand2 Handler and ALU Instructions from Control Unit:");
+        // $display("I31: %b | I30: %b | I24: %b | I13: %b | ALU_OP: %b\n-------------------------\n\n", I31, I30, I24, I13, ID_ALU_OP_instr);
 
         end
     end
@@ -581,9 +581,11 @@ module pipeline_IF_ID (
             end
         end
 
-    $display(">>> IF/ID Output Signals:\n------------------------------------------");
-    $display("PC: %d | imm: %b | I29: %b | branch: %b | rs1: %b | rs2: %b | rd: %b | cond: %b | inst: %b\n\n", 
-             PC_ID_out_reg, I21_0_reg, I29_0_reg, I29_branch_instr_reg, I18_14_reg, I4_0_reg, I29_25_reg, I28_25_reg, instruction_reg);
+    // #2
+    //$display(">>> IF/ID Output Signals:\n------------------------------------------");
+    // $display(">>> ID Control Signals:\n------------------------------------------");
+    // $display("PC: %d | imm: %b | I29: %b | branch: %b | rs1: %b | rs2: %b | rd: %b | cond: %b | inst: %b\n", 
+    //          PC_ID_out_reg, I21_0_reg, I29_0_reg, I29_branch_instr_reg, I18_14_reg, I4_0_reg, I29_25_reg, I28_25_reg, instruction_reg);
     end
     assign PC_ID_out         = PC_ID_out_reg;       
     assign I21_0             = I21_0_reg;   
@@ -638,10 +640,11 @@ module pipeline_ID_EX(
                 EX_control_unit_instr_reg   = ID_control_unit_instr[8:0];
             end
         end
-
-    $display(">>> ID/EX Output Signals:\n------------------------------------------");
-    $display("PC: %d | EX_IS: %b | EX_ALU: %b | EX_control: %b | EX_RD: %b | EX_CC: %b\n", 
-            PC_ID_out_reg, EX_IS_instr_reg, EX_ALU_OP_instr_reg, EX_control_unit_instr_reg, EX_RD_instr_reg, EX_CC_Enable_instr_reg);
+    
+    //$display(">>> ID/EX Output Signals:\n------------------------------------------");
+    // $display(">>> EX Control Signals:\n------------------------------------------");
+    // $display("PC: %d | EX_IS: %b | EX_ALU: %b | EX_control: %b | EX_RD: %b | EX_CC: %b\n", 
+    //         PC_ID_out_reg, EX_IS_instr_reg, EX_ALU_OP_instr_reg, EX_control_unit_instr_reg, EX_RD_instr_reg, EX_CC_Enable_instr_reg);
 
     end
 
@@ -694,9 +697,11 @@ module pipeline_EX_MEM(
             end
         end
     
-    $display(">>> EX/MEM Output Signals:\n------------------------------------------");
-    $display("DataInst: %b | OutHandler: %b | MEM_control: %b | MEM_RD: %b | PC_MEM: %b\n", 
-             Data_Mem_instructions_reg, Output_Handler_instructions_reg, MEM_control_unit_instr_reg, MEM_RD_instr_reg, PC_MEM_out_reg);
+    // #6
+    //$display(">>> EX/MEM Output Signals:\n------------------------------------------");
+    // $display(">>> MEM Control Signals:\n------------------------------------------");
+    // $display("DataInst: %b | OutHandler: %b | MEM_control: %b | MEM_RD: %b | PC_MEM: %b\n", 
+    //          Data_Mem_instructions_reg, Output_Handler_instructions_reg, MEM_control_unit_instr_reg, MEM_RD_instr_reg, PC_MEM_out_reg);
     
     end
     assign Data_Mem_instructions        = Data_Mem_instructions_reg;
@@ -735,9 +740,11 @@ module pipeline_MEM_WB(
                 WB_Register_File_Enable_reg     = MEM_control_unit_instr;
             end
         end
-    $display(">>> MEM/WB Output Signals:\n------------------------------------------");
-    $display("WB_RD: %b | WB_out: %b | WB_reg_file: %b | MUX OUT: %b\n", 
-             WB_RD_instr_reg, WB_RD_out_reg, WB_Register_File_Enable_reg, MUX_out);
+    // #8  
+    //$display(">>> MEM/WB Output Signals:\n------------------------------------------");
+    // $display(">>> WB Control Signals:\n------------------------------------------");
+    // $display("WB_RD: %b | WB_out: %b | WB_reg_file: %b | MUX OUT: %b\n", 
+    //          WB_RD_instr_reg, WB_RD_out_reg, WB_Register_File_Enable_reg, MUX_out);
     end
     assign WB_RD_instr              = WB_RD_instr_reg;
     assign WB_RD_out                = WB_RD_out_reg;
@@ -929,10 +936,57 @@ module phase3Tester;
         $finish;
     end 
     reg [9:0] wow;
-    initial begin
+    // initial begin
 
-        $monitor("Monitoring PCs Clocks and Claks:\n------------------------------------------\nLE: %b | reset: %b | PC: %d | time %d | clk: %d clr: %d | MEM: %b\n\n", LE, reset, PC, $time, clk, clr, instruction);
-        // $monitor("Baseline: \n---------------------\nenable: %b | reset: %b | PC: %d | nPC: %d | PC_ID: %d | PC_EX: %d | PC_MEM: %d | time %d | clk: %d clr: %d\n----- Instruction: %b ----- Addr: %d\n\n", enable, reset, PC, nPC, PC_ID, PC_EX, PC_MEM, $time, clk, clr, instruction_out, Address);
+    //     //$monitor("Monitoring PCs Clocks and Claks:\n------------------------------------------\nLE: %b | reset: %b | PC: %d | time %d | clk: %d clr: %d | MEM: %b\n\n", LE, reset, PC, $time, clk, clr, instruction);
+    //     //$monitor("\n\n---------------------\nenable: %b | reset: %b | PC: %d | nPC: %d | PC_ID: %d | PC_EX: %d | PC_MEM: %d | time %d | clk: %d clr: %d\n----- Instruction: %b ----- ", enable, reset, PC, nPC, PC_ID, PC_EX, PC_MEM, $time, clk, clr, instruction_out)
+    //     $display("\n\nFase 3: \n(PC, Señales de Control por Etapa (ID,EX,MEM,WB)) \n");
+    //     //$display("\n------------------------------------\nenable: %b | reset: %b | PC: %d | nPC: %d | time %d | clk: %d clr: %d\n\n----- Instruction: %b ----- \n\n", enable, reset, PC, nPC, $time, clk, clr, instruction_out);
+    //     //$monitor("\n------------------------------------------\nPC: %d | time %d | clk: %d | clr: %d \n ----- Instruction: %b ----- " PC, $time, clk, clr);
+    
+    //     $moniotr(">>> ID Control Signals:\n------------------------------------------");
+    //     $monior("PC: %d | imm: %b | I29: %b | branch: %b | rs1: %b | rs2: %b | rd: %b | cond: %b | inst: %b\n", 
+    //             PC_ID, I21_0_reg, I29_0_reg, I29_branch_instr_reg, I18_14_reg, I4_0_reg, I29_25_reg, I28_25_reg, instruction_reg);
+
+    //     $monitor(">>> EX Control Signals:\n------------------------------------------");
+    //     $monior("PC: %d | EX_IS: %b | EX_ALU: %b | EX_control: %b | EX_RD: %b | EX_CC: %b\n", 
+    //             PC_ID_out_reg, EX_IS_instr_reg, EX_ALU_OP_instr_reg, EX_control_unit_instr_reg, EX_RD_instr_reg, EX_CC_Enable_instr_reg);
+
+    //     $monitor(">>> MEM Control Signals:\n------------------------------------------");
+    //     $monior("DataInst: %b | OutHandler: %b | MEM_control: %b | MEM_RD: %b | PC_MEM: %b\n", 
+    //             Data_Mem_instructions_reg, Output_Handler_instructions_reg, MEM_control_unit_instr_reg, MEM_RD_instr_reg, PC_MEM_out_reg);        
+
+    //     $monitor(">>> WB Control Signals:\n------------------------------------------");
+    //     $monior("WB_RD: %b | WB_out: %b | WB_reg_file: %b | MUX OUT: %b\n", 
+    //             WB_RD_instr_reg, WB_RD_out_reg, WB_Register_File_Enable_reg, MUX_out);    
+
+    // end
+    initial begin
+        $display("\n\nFase 3: \n(PC, Señales de Control por Etapa (ID,EX,MEM,WB)) \n");
+        //$monitor("\n\n---------------------\nenable: %b | reset: %b | PC: %d | nPC: %d | time %d | clk: %d clr: %d\n----- Instruction: %b ----- ", enable, reset, PC, nPC, $time, clk, clr, instruction_out);
+
+    end    
+
+    always @(posedge clk) begin
+    
+    $display("\n\n---------------------\nenable: %b | reset: %b | PC: %d | nPC: %d | time %d | clk: %d clr: %d\n----- Instruction: %b ----- ", enable, reset, PC, nPC, $time, clk, clr, instruction_out);
+
+
+    $display(">>> ID Control Signals:\n------------------------------------------");
+    $display("PC_ID: %d | imm: %b | I29: %b | branch: %b | rs1: %b | rs2: %b | rd: %b | cond: %b | inst: %b\n", 
+            PC_ID, Imm22, I29_0, I29_branch_instr, rs1, rs2, rd, cond, instruction_out);
+
+    $display(">>> EX Control Signals:\n------------------------------------------");
+    $display("PC_EX: %d | EX_IS: %b | EX_ALU: %b | EX_control: %b | EX_RD: %b | EX_CC: %b\n", 
+            PC_EX, IS, ALU_OP, EX_CU, RD_EX, CC_Enable);
+
+    $display(">>> MEM Control Signals:\n------------------------------------------");
+    $display("PC_MEM: %d | DataInst: %b | OutHandler: %b | MEM_control: %b | MEM_RD: %b\n", 
+            PC_MEM, DataMemInstructions, OutputHandlerInstructions, MEM_CU, RD_MEM);
+
+    $display(">>> WB Control Signals:\n------------------------------------------");
+    $display("WB_RD: %b | WB_out: %b | WB_reg_file: %b | MUX OUT: %b\n", 
+            RD_WB, WB_RD_out, WB_Register_File_Enable, OutputMUX);    
     end
 
     initial begin
