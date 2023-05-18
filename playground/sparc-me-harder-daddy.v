@@ -590,7 +590,7 @@ module control_unit(
                             // Arithmetic
                             default: begin
                                 // For cases where the signal modifies condition codes
-                                $display("ALU MOMENT %b", op3);
+                                // $display("ALU MOMENT %b", op3);
                                 case (op3)
                                     6'b000000: begin // add
                                         ID_ALU_OP_instr <= 4'b0000;
@@ -959,10 +959,10 @@ module PSR_register (
     output reg [3:0] out,
     output reg carry,
     input wire [3:0] flags, 
-    input wire enable, Clr, clk
+    input wire enable, clr, clk
 );
-always @ (posedge clk, posedge Clr)
-	if (Clr) out <= 4'b000;
+always @ (posedge clk, negedge clr)
+	if (clr) out <= 4'b000;
 	else if (enable) begin
         out <= flags;
         carry <= flags[2];
@@ -1333,7 +1333,7 @@ module pipeline_EX_MEM(
     input wire [31:0]  PC,
     input wire [4:0]   EX_RD_instr,
     
-    output wire [3:0]  Data_Mem_instructions,
+    output wire [4:0]  Data_Mem_instructions,
     output wire [2:0]  Output_Handler_instructions,
     output wire        MEM_control_unit_instr,
     output wire [31:0] PC_MEM_out,
@@ -1472,7 +1472,7 @@ module phase4Tester;
     wire [4:0] RD_WB;
 
 
-    wire [3:0] DataMemInstructions;
+    wire [4:0] DataMemInstructions;
     wire [2:0] OutputHandlerInstructions;
 
     wire [31:0] OutputMUX;
@@ -1658,24 +1658,17 @@ module phase4Tester;
         $display("                     Data MEM Size: %b | Condition Code Enable: %b | I31: %b | I30: %b | I24: %b | I13: %b | Alu Opcode: %b | Branch Instruction: %b", ID_CU[8:7], ID_CU[9], ID_CU[10], ID_CU[11], ID_CU[12], ID_CU[13], ID_CU[17:14], ID_CU[18]);
         $display(">>> ID Stage");
         $display("-------------------> Current Instruction: %b | Imm22: %b | Rs1: %b | Rs2: %b | Rd: %b | branch cond instruction: %b | RD: %b | PC: %d", instruction_out, Imm22, rs1, rs2, rd, I29_branch_instr, RD_ID, PC_ID);
+        $display("                     call: %b | jmpl: %b | load: %b | Register File Enable: %b | Data MEM SE: %b | Data MEM R/W: %b | Data MEM Enable: %b", ID_CU[0], ID_CU[1], ID_CU[2], ID_CU[3], ID_CU[4], ID_CU[5], ID_CU[6]);
+        $display("                     Data MEM Size: %b | Condition Code Enable: %b | I31: %b | I30: %b | I24: %b | I13: %b | Alu Opcode: %b | Branch Instruction: %b", ID_CU[8:7], ID_CU[9], ID_CU[10], ID_CU[11], ID_CU[12], ID_CU[13], ID_CU[17:14], ID_CU[18]);        
         $display(">>> EX Stage");
         $display("-------------------> ALU Opcode: %b | Source Operand Handler Is: %b | Imm22: %b | Condition Code Enable: %b | RD: %b | PC: %d", ALU_OP, IS, EX_Imm22, CC_Enable, RD_EX, PC_EX);
+        $display("                     call: %b | jmpl: %b | load: %b | Register File Enable: %b | Data MEM SE: %b | Data MEM R/W: %b | Data MEM Enable: %b", EX_CU[0], EX_CU[1], EX_CU[2], EX_CU[3], EX_CU[4], EX_CU[5], ID_CU[6]);
+        $display("                     Data Mem Size: %b", EX_CU[8:7]);
         $display(">>> MEM Stage");
-        $display("-------------------> DATA MEM ==> SE: %b | R/W: %b | Enable: %b | Size: %b || jmpl: %b | call: %b | load: %b | register file enable: %b | RD: %b | PC: %d", DataMemInstructions[0], DataMemInstructions[1], DataMemInstructions[2], DataMemInstructions[4:3], OutputHandlerInstructions[0], OutputHandlerInstructions[1], OutputHandlerInstructions[2], MEM_CU, RD_MEM, PC_MEM);
+        $display("-------------------> Data MEM SE: %b | Data MEM R/W: %b | Data MEM Enable: %b | Data MEM Size: %b | jmpl: %b | call: %b | load: %b | register file enable: %b | RD: %b | PC: %d", DataMemInstructions[0], DataMemInstructions[1], DataMemInstructions[2], DataMemInstructions[4:3], OutputHandlerInstructions[0], OutputHandlerInstructions[1], OutputHandlerInstructions[2], MEM_CU, RD_MEM, PC_MEM);
         $display(">>> WB Stage");
         $display("-------------------> Data MEM Output: %b | Register File Enable: %b | RD: %b", WB_Register_File_Enable, WB_Register_File_Enable, RD_WB);
     end
-
-    // initial begin
-    //     $monitor("TIME: %d | clk: %b | clr: %b | PC: %d | nPC: %d\
-    //     \n>>> IF Stage\n\
-    //     ------> Imm22: %b | Rs1: %b | Rs2: %b | Rd: %b\
-    //     n\------> Imm22 after: %b\
-    //     ", $time, clk, clr, PC, nPC, Imm22, rs1, rs2, rd, EX_Imm22);
-    // end
-    // initial begin
-    //     $monitor("IMM ID: %b | IMM EX: %b | clk: %b | clr: %b | PC: %d | instruction: %b", Imm22, EX_Imm22, clk, clr, PC, instruction, $time);
-    // end
 
     initial begin
         LE = 1'b1;
