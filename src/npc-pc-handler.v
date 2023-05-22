@@ -120,7 +120,6 @@ endmodule
 module PC_nPC_Register(
     input                clk,
     input                clr,
-    input                reset,
     input                LE,
     input      [31:0]    nPC,
     input      [31:0]    ALU_OUT,
@@ -129,9 +128,9 @@ module PC_nPC_Register(
     output reg [31:0]    OUT
     );
 
-    always @ (posedge clk, negedge clr) begin
-        if (clr == 0 && clk == 1) begin
-            if(reset) begin
+    always @ (posedge clk, posedge clr) begin
+        if (clk == 1) begin
+            if(clr == 1) begin
                 OUT <= 32'b0;
             end else if (LE) begin
                 case (mux_select)

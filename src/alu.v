@@ -1,4 +1,66 @@
-module mini_alu (
+
+/***************************************************************
+* Module: alu
+***************************************************************
+* Description:
+* This module implements an Arithmetic Logic Unit (ALU) that performs various arithmetic and logic operations on two 32-bit inputs (a and b) based on a 4-bit opcode. The ALU computes the result (y) and sets the flags (Z, N, C, V) based on the operation performed.
+* 
+* Inputs:
+* - a [31:0]: 32-bit input A
+* - b [31:0]: 32-bit input B
+* - cin: Carry-in input
+* - opcode [3:0]: 4-bit operation code
+* 
+* Outputs:
+* - y [31:0]: 32-bit output result
+* - flags [3:0]: Flags indicating the result status (Z, N, C, V)
+* 
+* Limitations:
+* - The ALU module only supports 32-bit inputs and outputs. Other bit widths are not supported.
+* 
+* Usage:
+* 1. Instantiate the `alu` module in your design and provide the required inputs and outputs.
+* 2. Connect the 32-bit inputs `a` and `b` to the desired sources.
+* 3. Set the `cin` input to the carry-in value if required.
+* 4. Assign the desired operation code to the `opcode` input to select the desired operation.
+* 5. The output `y` will hold the result of the operation, and `flags` will indicate the status flags (Z, N, C, V) based on the operation performed.
+* 
+* Example:
+* ```verilog
+* module testbench;
+*     reg [31:0] a, b;
+*     reg cin;
+*     reg [3:0] opcode;
+*     wire [31:0] y;
+*     wire [3:0] flags;
+* 
+*     alu alu_inst (
+*         .a(a),
+*         .b(b),
+*         .cin(cin),
+*         .opcode(opcode),
+*         .y(y),
+*         .flags(flags)
+*     );
+* 
+*     initial begin
+*         // Set input values
+*         a = 32'hA5A5A5A5;
+*         b = 32'hB5B5B5B5;
+*         cin = 1'b1;
+*         opcode = 4'b0000; // Addition operation
+* 
+*         // Wait some time for computation
+*         #10;
+* 
+*         // Check outputs
+*         $display("Result: %h", y);
+*         $display("Flags: %b", flags);
+*     end
+* endmodule
+* ```
+***************************************************************/
+module alu (
     input [31:0] a,
     input [31:0] b, 
     input cin, 
@@ -21,7 +83,6 @@ module mini_alu (
     * V -> Overflow
     */
     always @(opcode, a, b, cin) begin
-    // carry = {1'b0,a} + {1'b0,b};    
         case (opcode)
             4'b0000: begin
                 {carry, y} = a + b; // Add => A + B

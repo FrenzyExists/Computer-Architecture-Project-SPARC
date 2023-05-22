@@ -1,4 +1,5 @@
 `timescale 1ns / 1ps
+`include "src/reset-handler.v"
 
 module reset_handler_test();
 
@@ -23,6 +24,7 @@ module reset_handler_test();
         system_reset = 1'b1;
         ID_branch_instr = 1'b0;
         a = 1'b0;
+        $display ("Test 1: System Reset is triggered but Branch Instruction is not...\n");
         #1;
         if (reset_out !== 1'b1) $error("Test case 1 failed");
 
@@ -30,6 +32,7 @@ module reset_handler_test();
         system_reset = 1'b0;
         ID_branch_instr = 1'b1;
         a = 1'b0;
+        $display ("Test 2: System Reset isn't triggered, but Branch Instruction is...\n");
         #1;
         if (reset_out !== 1'b0) $error("Test case 2 failed");
 
@@ -37,6 +40,7 @@ module reset_handler_test();
         system_reset = 1'b1;
         ID_branch_instr = 1'b1;
         a = 1'b1;
+        $display ("System Reset is triggered as well as Branch Instruction...\n");
         #1;
         if (reset_out !== 1'b1) $error("Test case 3 failed");
 
@@ -44,6 +48,7 @@ module reset_handler_test();
         system_reset = 1'b0;
         ID_branch_instr = 1'b0;
         a = 1'b1;
+        $display ("System reset isn't triggered nor is Branch Instruction...\n");
         #1;
         if (reset_out !== 1'b0) $error("Test case 4 failed");
 
@@ -51,6 +56,7 @@ module reset_handler_test();
         system_reset = 1'b0;
         ID_branch_instr = 1'b0;
         a = 1'b0;
+        $display ("System Reset isn't triggered nor is Branch Instruction and Condition is set to False...\n");
         #1;
         if (reset_out !== 1'b0) $error("Test case 5 failed");
 

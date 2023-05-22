@@ -2,7 +2,7 @@
 module ram_512x8 (
     output reg [31:0] DataOut, 
     input Enable, ReadWrite, SignExtend,
-    input [8:0] Address, 
+    input [7:0] Address, 
     input [31:0] DataIn,
     input [1:0] Size
     );
