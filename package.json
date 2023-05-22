@@ -1,0 +1,24 @@
+{
+    "name": "verilog",
+    "version": "0.1.0",
+    "description": "SPARCV8-based hardware design. Part of a college course",
+    "main": "/",
+    "directories": {
+      "src": "src",
+      "testers": "testers",
+      "docs": "documentation" 
+    },
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/FrenzyExists/Computer-Architecture-Project-SPARC.git"
+    },
+    "author": "Detective Pikachu",
+    "license": "MIT",
+    "bugs": {
+      "url": "https://github.com/FrenzyExists/Computer-Architecture-Project-SPARC/issues"
+    },
+    "homepage": "https://github.com/FrenzyExists/Computer-Architecture-Project-SPARC#readme"
+  }
