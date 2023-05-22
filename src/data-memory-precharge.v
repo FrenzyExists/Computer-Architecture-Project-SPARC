@@ -1,4 +1,5 @@
 `timescale 1ns / 1ns
+`include "src/data-memory.v"
 // Data memory pre-load - Victor Barriera
 
 module ram_512x8_precharge;
@@ -7,7 +8,7 @@ module ram_512x8_precharge;
 
     wire [31:0] DataOut;
     reg Enable, ReadWrite, SignExtend;
-    reg [8:0] Address;
+    reg [7:0] Address;
     reg [31:0] DataIn;
     reg [1:0] Size;
 
@@ -23,7 +24,7 @@ module ram_512x8_precharge;
 
     initial begin
         fi = $fopen("precharge/sparc-instructions-precharge.txt","r");
-        Address = 9'b000000000;
+        Address = 8'b00000000;
         while (!$feof(fi)) begin
             code = $fscanf(fi, "%b", data);
             ram1.Mem[Address] = data;
@@ -44,7 +45,7 @@ module ram_512x8_precharge;
 
     initial begin
         Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b11; 
-        Address = 9'b000000000;
+        Address = 8'b00000000;
         #1
         Address = Address + 4;
         #1
@@ -54,7 +55,7 @@ module ram_512x8_precharge;
         #1
         $display("Read Mode");
         Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b00; SignExtend = 1'b0;
-        Address = 9'b000000000;
+        Address = 8'b00000000;
         #1
         Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b01; SignExtend = 1'b0;
         Address = Address + 2;
@@ -63,7 +64,7 @@ module ram_512x8_precharge;
         Address = Address + 2;
         #1
         Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b00; SignExtend = 1'b1;
-        Address = 9'b000000000;
+        Address = 8'b00000000;
         #1
         Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b01; SignExtend = 1'b1;
         Address = Address + 2;
@@ -88,7 +89,7 @@ module ram_512x8_precharge;
         DataIn = 32'haeeabba6; 
         #1
         Enable = 1'b1; ReadWrite = 1'b0; Size = 2'b11; 
-        Address = 9'b000000000;
+        Address = 8'b00000000;
         #1
         Address = Address + 4;
         #1

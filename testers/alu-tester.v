@@ -1,4 +1,5 @@
 `timescale 1ns / 1ns
+`include "src/alu.v"
 
 // uncomment this so you only need to run the
 // tester module :D
@@ -14,7 +15,7 @@ module mini_alu_tb;
   wire [31:0] y;
   wire [3:0] flags;
 
-  mini_alu uut (
+  alu uut (
     .a(a),
     .b(b),
     .cin(cin),

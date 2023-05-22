@@ -153,10 +153,7 @@ module control_unit(
     reg [1:0] instr_op;
 
     always @(posedge clk, negedge clr, instr) begin
-        $display("\nInstruction CU sees: %b | TIME: %d | clr: %b | clk: %b | signal_out: %b\n--------------------------------", instr, $time, clr, clk, instr_signals);             
-        // $display("xxxxxxxx instruction?: %b", instr === 32'bx);
         if (instr == 32'b0 | instr === 32'bx) begin
-            // $display("Instructions are NOP...");
             ID_jmpl_instr                   <= 1'b0;
             ID_call_instr                   <= 1'b0;
             ID_branch_instr                 <= 1'b0;
@@ -183,7 +180,7 @@ module control_unit(
                 ID_jmpl_instr               <= 1'b0;
                 ID_call_instr               <= 1'b0;
                 ID_load_instr               <= 1'b0; 
-                ID_register_file_Enable     <= 1'b0;
+                ID_register_file_Enable     <= 1'b1;
                 CC_Enable                   <= 1'b0;
                 // Ask the professor for these
                 ID_data_mem_SE              <= 1'b0;
@@ -203,7 +200,6 @@ module control_unit(
                 end
             end
             2'b01: begin // Call Instruction
-                $display("This is a call instruction %d", $time);
                 ID_jmpl_instr                   <= 1'b0;
                 ID_call_instr                   <= 1'b1;
                 ID_branch_instr                 <= 1'b0;
@@ -220,16 +216,13 @@ module control_unit(
             end
             2'b10, 2'b11: begin
                 op3 = instr[24:19]; // the opcode instruction that tells what to do
-                // $display("Getting the op3 code =  %b", op3);
                 if (instr_op == 2'b11) begin
-                    $display("Instruction is a Load/Store Instruction %d", $time);
                     // Load/Store Instruction
                     ID_jmpl_instr               <= 1'b0;
                     ID_call_instr               <= 1'b0;
                     ID_branch_instr             <= 1'b0;
                     CC_Enable                   <= 1'b0;
                     ID_ALU_OP_instr             <= 4'b0000;
-                    ID_register_file_Enable     <= 1'b1;
                     ID_data_mem_Enable          <= 1'b1;
                     case (op3)
                         6'b001001, 6'b001010, 6'b000000, 6'b000001, 6'b000010: 
@@ -241,7 +234,7 @@ module control_unit(
                             // Trigger Memory to Read mode
                             ID_load_instr                   <= 1'b1;
                             ID_data_mem_RW                  <= 1'b0;
-                            
+                            ID_register_file_Enable         <= 1'b1;
                             if (op3 == 6'b001001) begin// Load signed byte
                                 ID_data_mem_SE              <= 1'b1;
                                 ID_data_mem_Size            <= 2'b00;
@@ -264,6 +257,7 @@ module control_unit(
                                 // Store Mode (mem is set to write mode)
                                 ID_load_instr               <= 1'b0;
                                 ID_data_mem_RW              <= 1'b1;
+                                ID_register_file_Enable     <= 1'b0;
                                 if (op3 == 6'b000101) begin // Store byte
                                     // ID_data_mem_SE        <= 1'b0;
                                     ID_data_mem_Size         <= 2'b00;
@@ -281,11 +275,9 @@ module control_unit(
                         // Why the fuck Sparc had to squeeze so many possible instructions on this one block, like... bruh
                         ID_call_instr                        <= 1'b0;
                         ID_branch_instr                      <= 1'b0;
-                        $display("This is possibly a Save/Restore/Arithmetic/Jmpl/Read/Write Instruction %d", $time);
                         case (op3)
                             // Jmpl
                             6'b111000: begin
-                                // $display("Instruction is a jmpl instruction");
                                 ID_jmpl_instr               <= 1'b1;
                                 ID_load_instr               <= 1'b0;
                                 ID_data_mem_SE              <= 1'b0;
@@ -311,35 +303,55 @@ module control_unit(
                             // Arithmetic
                             default: begin
                                 // For cases where the signal modifies condition codes
-                                // $display("ALU MOMENT %b", op3);
                                 case (op3)
                                     6'b000000: begin // add
-                                        ID_ALU_OP_instr <= 4'b0000;
-                                        CC_Enable       <= 1'b0;
+                                        ID_ALU_OP_instr             <= 4'b0000;
+                                        CC_Enable                   <= 1'b0;
+                                        ID_register_file_Enable     <= 1'b1;
+                                        ID_data_mem_RW              <= 1'b0;
+                                        ID_data_mem_Enable          <= 1'b0;
                                     end
                                     6'b010000: begin // addcc
                                         ID_ALU_OP_instr <= 4'b0000;
                                         CC_Enable       <= 1'b1;
+                                        ID_register_file_Enable     <= 1'b1;
+                                        ID_data_mem_RW              <= 1'b0;
+                                        ID_data_mem_Enable          <= 1'b0;
                                     end
                                     6'b001000: begin // addx
                                         ID_ALU_OP_instr <= 4'b0001;
                                         CC_Enable       <= 1'b0;
+                                        ID_register_file_Enable     <= 1'b1;
+                                        ID_data_mem_RW              <= 1'b0;
+                                        ID_data_mem_Enable          <= 1'b0;
                                     end
                                     6'b011000: begin // addxcc
                                         ID_ALU_OP_instr <= 4'b0001;
                                         CC_Enable       <= 1'b1;
+                                        ID_register_file_Enable     <= 1'b1;
+                                        ID_data_mem_RW              <= 1'b0;
+                                        ID_data_mem_Enable          <= 1'b0;
                                     end
                                     6'b000100: begin // sub
                                         ID_ALU_OP_instr <= 4'b0010;
                                         CC_Enable       <= 1'b0;
+                                        ID_register_file_Enable     <= 1'b1;
+                                        ID_data_mem_RW              <= 1'b0;
+                                        ID_data_mem_Enable          <= 1'b0;
                                     end
                                     6'b010100: begin // subcc
                                         ID_ALU_OP_instr <= 4'b0010;
                                         CC_Enable       <= 1'b1;
+                                        ID_register_file_Enable     <= 1'b1;
+                                        ID_data_mem_RW              <= 1'b0;
+                                        ID_data_mem_Enable          <= 1'b0;
                                     end
                                     6'b001100: begin // subx
                                         ID_ALU_OP_instr <= 4'b0011;
                                         CC_Enable       <= 1'b0;
+                                        ID_register_file_Enable     <= 1'b1;
+                                        ID_data_mem_RW              <= 1'b0;
+                                        ID_data_mem_Enable          <= 1'b0;
                                     end
                                     6'b000001: begin // and
                                         ID_ALU_OP_instr <= 4'b0100;
@@ -407,11 +419,10 @@ module control_unit(
                                 ID_call_instr               <= 1'b0;
                                 ID_branch_instr             <= 1'b0;
                                 ID_load_instr               <= 1'b0;
-                                ID_register_file_Enable     <= 1'b0;
 
                                 ID_data_mem_SE              <= 1'b0;
-                                ID_data_mem_RW              <= 1'b1;
-                                ID_data_mem_Enable          <= 1'b1;
+                                // ID_data_mem_RW              <= 1'b1;
+                                // ID_data_mem_Enable          <= 1'b1;
                                 ID_data_mem_Size            <= 2'b0;
                             end
                         endcase

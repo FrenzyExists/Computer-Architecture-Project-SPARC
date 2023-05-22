@@ -1,4 +1,5 @@
 `timescale 1ns / 1ns
+`include "src/register-file.v"
 
 //Test for Register File 
 module register_file_tester;
