@@ -137,7 +137,8 @@ module phase3Tester;
         #1 clk <= ~clk; 
        forever #2 clk = ~clk;
     end
-
+    
+    // My existance is to stop things so I can then let then pass
     pipeline_IF_ID IF_ID (
         .PC                             (PC),
         .instruction                    (instruction),
@@ -229,13 +230,6 @@ module phase3Tester;
         $display("\n----------------------------------------------------------\nSimmulation Complete! Remember to dump this on GTK Wave and subscribe to PewDiePie...");
         $finish;
     end 
- 
-    // always @(posedge clk, negedge clr) begin
-    //     $display("\n\n\nTIME: %d | S: %b\n---------------------------------", $time, S);
-    //     $display("Instruction entering at Decode Stage: %b", instruction_out);
-    //     $display("jmpl at ID: %b | call: %b", ID_CU[0], ID_CU[1]);
-    //     $display("jmpl at EX: %b | call: %b", EX_CU[0], EX_CU[1]);
-    // end
 
     // always @(posedge clk, negedge clr) begin
 
@@ -283,7 +277,7 @@ module phase3Tester;
         ID_CU[8:7], ID_CU[9], ID_CU[10], ID_CU[11], ID_CU[12], ID_CU[13], ID_CU[17:14], ID_branch_instr,
         
         PC_EX, EX_CU[0], EX_CU[1], EX_CU[2], EX_CU[3], EX_CU[4], EX_CU[5], EX_CU[6],
-        EX_CU[8:7], EX_CU[9], EX_CU[10], EX_CU[11], EX_CU[12], EX_CU[13], EX_CU[17:14],
+        EX_CU[8:7], CC_Enable, IS[0], IS[1], IS[2], IS[3], ALU_OP,
 
         PC_MEM, OutputHandlerInstructions[0], OutputHandlerInstructions[1], OutputHandlerInstructions[2], MEM_CU, DataMemInstructions[0], DataMemInstructions[1], DataMemInstructions[2], 
         DataMemInstructions[4:3],

@@ -237,13 +237,13 @@ module pipeline_ID_EX (
     output wire [8:0]  EX_control_unit_instr      // The rest of the control unit instructions that don't need to be deconstructed
     );
 
-    reg [31:0] PC_ID_out_reg;
-    reg [3:0]  EX_IS_instr_reg;
-    reg [3:0]  EX_ALU_OP_instr_reg;
-    reg [8:0]  EX_control_unit_instr_reg;
-    reg [5:0]  EX_RD_instr_reg;
-    reg        EX_CC_Enable_instr_reg;
-    reg [21:0] EX_Imm22_reg = 22'b0;
+    reg [31:0] PC_ID_out_reg                = 32'b0;
+    reg [3:0]  EX_IS_instr_reg              = 4'b0;
+    reg [3:0]  EX_ALU_OP_instr_reg          = 4'b0;
+    reg [8:0]  EX_control_unit_instr_reg    = 9'b0;
+    reg [4:0]  EX_RD_instr_reg              = 5'b0;
+    reg        EX_CC_Enable_instr_reg       = 1'b0;
+    reg [21:0] EX_Imm22_reg                 = 22'b0;
 
     reg [31:0] EX_MX1_reg;
     reg [31:0] EX_MX2_reg;
@@ -251,7 +251,7 @@ module pipeline_ID_EX (
 
     always@(posedge clk, negedge clr) begin
         if (clk  == 1 && clr == 0) begin
-            if (reset) begin
+            if (reset | PC === 32'bx | ID_control_unit_instr === 18'bx) begin
                 PC_ID_out_reg               <= 32'b0;
                 EX_IS_instr_reg             <= 4'b0;
                 EX_ALU_OP_instr_reg         <= 4'b0;
@@ -263,8 +263,6 @@ module pipeline_ID_EX (
                 EX_MX2_reg                  <= 32'b0;
                 EX_MX3_reg                  <= 32'b0;
             end else begin
-                
-            // $display("Immediate vals. IN %b and OUT %b", Imm22, EX_Imm22_reg);
                 PC_ID_out_reg               <= PC;
                 EX_IS_instr_reg             <= ID_control_unit_instr[13:10];
                 EX_ALU_OP_instr_reg         <= ID_control_unit_instr[17:14];
@@ -355,8 +353,6 @@ module pipeline_ID_EX_2 (
                 EX_MX3_reg                  <= ID_MX3;
             end
         end
-        $display("Signals at EX: %b | jmpl: %b", ID_control_unit_instr, ID_control_unit_instr[0]);
-        $display("EX registers (jmpl): %b", EX_control_unit_instr_reg[0]);
         PC_EX                            = PC_ID_out_reg;
         EX_IS_instr                      = EX_IS_instr_reg;
         EX_ALU_OP_instr                  = EX_ALU_OP_instr_reg;
@@ -422,12 +418,12 @@ module pipeline_EX_MEM_2 (
     output wire [31:0] PC_MEM,
     output wire [4:0]  MEM_RD_instr
 );
-    reg [31:0]  MEM_ALU_OUT_reg;
-    reg [4:0]   Data_Mem_instructions_reg;
-    reg [2:0]   Output_Handler_instructions_reg;
-    reg         MEM_control_unit_instr_reg;
-    reg [4:0]   MEM_RD_instr_reg;
-    reg [31:0]  PC_MEM_reg;
+    reg [31:0]  MEM_ALU_OUT_reg                     = 32'b0;
+    reg [4:0]   Data_Mem_instructions_reg           = 5'b0;
+    reg [2:0]   Output_Handler_instructions_reg     = 3'b0;
+    reg         MEM_control_unit_instr_reg          = 1'b0;
+    reg [4:0]   MEM_RD_instr_reg                    = 5'b0;
+    reg [31:0]  PC_MEM_reg                          = 32'b0;
 
     always @(posedge clk, negedge clr) begin
         if (clr == 0) begin
@@ -445,8 +441,6 @@ module pipeline_EX_MEM_2 (
             MEM_RD_instr_reg                 <= EX_RD_instr;
             PC_MEM_reg                       <= PC;
         end
-        $display("Register file: %b", MEM_control_unit_instr_reg);
-        $display("PC %d", PC_MEM_reg);
     end
     
     assign MEM_ALU_OUT                        = MEM_ALU_OUT_reg;
@@ -473,16 +467,16 @@ module pipeline_EX_MEM (
     output reg [31:0] PC_MEM,
     output reg [4:0]  MEM_RD_instr
 );
-    reg [31:0]  MEM_ALU_OUT_reg;
-    reg [4:0]   Data_Mem_instructions_reg;
-    reg [2:0]   Output_Handler_instructions_reg;
-    reg         MEM_control_unit_instr_reg;
-    reg [4:0]   MEM_RD_instr_reg;
-    reg [31:0]  PC_MEM_reg;
+    reg [31:0]  MEM_ALU_OUT_reg                     = 32'b0;
+    reg [4:0]   Data_Mem_instructions_reg           = 5'b0;
+    reg [2:0]   Output_Handler_instructions_reg     = 3'b0;
+    reg         MEM_control_unit_instr_reg          = 1'b0;
+    reg [4:0]   MEM_RD_instr_reg                    = 5'b0;
+    reg [31:0]  PC_MEM_reg                          = 32'b0;
 
     always @(posedge clk, negedge clr, PC) begin
         if (clk == 1) begin
-            if (clr == 1 | PC == 32'bx) begin
+            if (clr == 1 | PC === 32'bx | EX_control_unit_instr === 9'bx) begin
                 MEM_ALU_OUT_reg                  <= 32'b0;
                 Data_Mem_instructions_reg        <= 5'b0;
                 Output_Handler_instructions_reg  <= 3'b0;
@@ -498,8 +492,6 @@ module pipeline_EX_MEM (
                 PC_MEM_reg                       <= PC;
             end
         end
-            // $display("Register file: %b", MEM_control_unit_instr_reg);
-            // $display("PC %d", PC_MEM_reg);
             MEM_ALU_OUT                          = MEM_ALU_OUT_reg;
             Data_Mem_instructions                = Data_Mem_instructions_reg;
             Output_Handler_instructions          = Output_Handler_instructions_reg;
@@ -553,9 +545,9 @@ module pipeline_MEM_WB (
     output wire        WB_Register_File_Enable 
     );
 
-    reg [4:0]  WB_RD_instr_reg;
-    reg [31:0] WB_RD_out_reg;
-    reg        WB_Register_File_Enable_reg;
+    reg [4:0]  WB_RD_instr_reg                  = 5'b0;
+    reg [31:0] WB_RD_out_reg                    = 32'b0;
+    reg        WB_Register_File_Enable_reg      = 1'b0;
 
     always@(posedge clk, negedge clr) begin
         if (clk  == 1 && clr == 0) begin

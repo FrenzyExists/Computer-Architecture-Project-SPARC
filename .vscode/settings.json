@@ -1,3 +1,7 @@
 {
-  "C_Cpp.intelliSenseEngine": "Tag Parser"
+  "C_Cpp.intelliSenseEngine": "Tag Parser",
+  "verilog.languageServer.enabled": true,
+  "verilog.ctags.path": "/usr/local/bin/ctags",
+  "verilog.linting.modelsim.runAtFileLocation": true,
+  "verilog.linting.linter": "iverilog"
 }
