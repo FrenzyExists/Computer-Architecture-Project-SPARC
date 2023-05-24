@@ -16,6 +16,9 @@ module condition_handler_tb;
     );
     
     initial begin
+        $dumpfile("gtk-wave-testers/condition-handler.vcd"); // pass this to GTK Wave to visualize better wtf is going on
+        $dumpvars(0, condition_handler_tb);
+
         $display ("Tesing Condition Handler...\n");
         $monitor("flags=%b, cond=%b, ID_branch_instr=%b, branch_out=%b", flags, cond, ID_branch_instr, branch_out);
     

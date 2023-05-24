@@ -1,3 +1,4 @@
+`include "src/instruction-memory.v"
 
 module rom_precharge;
     integer fi, fo, code, i; 
@@ -22,7 +23,9 @@ module rom_precharge;
     end
 
     initial begin
-            $monitor("Address = %d  DataOut = %b, time=%d", Address, DataOut, $time);
+        $dumpfile("gtk-wave-testers/instruction-memory.vcd"); // pass this to GTK Wave to visualize better wtf is going on
+        $dumpvars(0, rom_precharge);
+        $monitor("Address = %d  DataOut = %b, time=%d", Address, DataOut, $time);
     end
     initial begin
         #20
@@ -34,6 +37,6 @@ module rom_precharge;
         repeat (3) begin 
             #1
             Address = Address + 4;
-            end
         end
+    end
 endmodule

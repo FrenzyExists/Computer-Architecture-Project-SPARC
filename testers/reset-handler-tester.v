@@ -1,8 +1,7 @@
 `timescale 1ns / 1ps
 `include "src/reset-handler.v"
 
-module reset_handler_test();
-
+module reset_handler_test;
     reg system_reset;
     reg ID_branch_instr;
     reg a;
@@ -16,6 +15,8 @@ module reset_handler_test();
     );
 
     initial begin
+        $dumpfile("gtk-wave-testers/reset-handler.vcd"); // pass this to GTK Wave to visualize better wtf is going on
+        $dumpvars(0, reset_handler_test);
 
         $display ("Tesing Reset Handler...\n");
         $monitor("system_reset=%b, a=%b, ID_branch_instr=%b, reset_out=%b", system_reset, a, ID_branch_instr, reset_out);
@@ -59,7 +60,5 @@ module reset_handler_test();
         $display ("System Reset isn't triggered nor is Branch Instruction and Condition is set to False...\n");
         #1;
         if (reset_out !== 1'b0) $error("Test case 5 failed");
-
     end
-
 endmodule

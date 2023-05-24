@@ -6,93 +6,89 @@
 // `include "project/src/project-alu.v"
 // `include "project-alu.v"
 
-module mini_alu_tb;
+module alu_tb;
+    reg  [31:0] a;
+    reg  [31:0] b;
+    reg  cin;
+    reg  [3:0] opcode;
+    wire [31:0] y;
+    wire [3:0] flags;
 
-  reg  [31:0] a;
-  reg  [31:0] b;
-  reg  cin;
-  reg  [3:0] opcode;
-  wire [31:0] y;
-  wire [3:0] flags;
-
-  alu uut (
+    alu uut (
     .a(a),
     .b(b),
     .cin(cin),
     .opcode(opcode),
     .y(y),
     .flags(flags)
-  );
+    );
 
-  initial begin
-  
-  $display("Test 1\n");
-  #10
-    
-    //
-    a = 32'b11000000000000000000000000000001;
-    b = 32'b00000000000000000000000000000011;
+    initial begin  
+        $display("Test 1\n");
+        #10
+        
+        //
+        a = 32'b11000000000000000000000000000001;
+        b = 32'b00000000000000000000000000000011;
 
-    cin = 1'b1;
-    opcode = 4'b0000;
-    repeat (15) #20 opcode = opcode + 4'b0001;
+        cin = 1'b1;
+        opcode = 4'b0000;
+        repeat (15) #20 opcode = opcode + 4'b0001;
 
-    #100
-    #3 $display("\nTest 2\n");
-    a = 32'b00000000000000000000000000000000;
-    b = 32'b00000000000000000000000000000001;
-    cin = 1'b0;
-    opcode = 4'b0000;
-    repeat (15) #20 opcode = opcode + 4'b0001;
+        #100
+        #3 $display("\nTest 2\n");
+        a = 32'b00000000000000000000000000000000;
+        b = 32'b00000000000000000000000000000001;
+        cin = 1'b0;
+        opcode = 4'b0000;
+        repeat (15) #20 opcode = opcode + 4'b0001;
 
-    #100
-    
-    #3 $display("\nTest 3\n");
-    a = 32'b01000000000000000000000000000000;
-    b = 32'b01000000000000000000000000000000;
-    cin = 1'b0;
-    opcode = 4'b0000;
-    repeat (15) #20 opcode = opcode + 4'b0001;
-    
-    #100
+        #100
+        
+        #3 $display("\nTest 3\n");
+        a = 32'b01000000000000000000000000000000;
+        b = 32'b01000000000000000000000000000000;
+        cin = 1'b0;
+        opcode = 4'b0000;
+        repeat (15) #20 opcode = opcode + 4'b0001;
+        
+        #100
 
-    #3 $display("\nTest 4\n");
-    a = 32'b10000000000000000000000000001000;
-    b = 32'b10000000000000000000000001000000;
-    cin = 1'b0;
-    opcode = 4'b0000;
-    repeat (15) #20 opcode = opcode + 4'b0001;
+        #3 $display("\nTest 4\n");
+        a = 32'b10000000000000000000000000001000;
+        b = 32'b10000000000000000000000001000000;
+        cin = 1'b0;
+        opcode = 4'b0000;
+        repeat (15) #20 opcode = opcode + 4'b0001;
 
-    #100
+        #100
 
-    #3 $display("\nTest 5\n");
+        #3 $display("\nTest 5\n");
 
-    a = 32'b00000000000000000000000000000001;
-    b = 32'b10111111111111111111111111111111;
-    cin = 1'b0;
-    opcode = 4'b0000;
-    repeat (15) #20 opcode = opcode + 4'b0001;
+        a = 32'b00000000000000000000000000000001;
+        b = 32'b10111111111111111111111111111111;
+        cin = 1'b0;
+        opcode = 4'b0000;
+        repeat (15) #20 opcode = opcode + 4'b0001;
 
-    #100
+        #100
 
-    #3 $display("\nTest 6\n");
+        #3 $display("\nTest 6\n");
 
-    // shift test
-    a = 32'b11000000000000000000000000000001;
-    b = 32'b10111111111111111111111111000011;
-    cin = 1'b0;
-    opcode = 4'b0000;
-    repeat (15) #20 opcode = opcode + 4'b0001;
-
-
-
-    // if (y !== 32'h00000000 || flags !== 4'b1000) $error("Test failed for ADD operation with flags");
+        // shift test
+        a = 32'b11000000000000000000000000000001;
+        b = 32'b10111111111111111111111111000011;
+        cin = 1'b0;
+        opcode = 4'b0000;
+        repeat (15) #20 opcode = opcode + 4'b0001;
     end
+    
     initial begin
-
-    #10 $display("| opcode |%17sA%16s|%17sB%16s|%17sY%16s| flag |", "", "", "", "", "", "");
-    #10 $display("|--------|%s|%s|%s|------|", "----------------------------------", "----------------------------------", "----------------------------------");
-    #15 $monitor("| %b   | %30b | %30b | %30b | %b |", opcode, a, b, y, flags);
-
+        $dumpfile("gtk-wave-testers/alu.vcd"); // pass this to GTK Wave to visualize better wtf is going on
+        $dumpvars(0, alu_tb);
+        
+        #10 $display("| opcode |%17sA%16s|%17sB%16s|%17sY%16s| flag |", "", "", "", "", "", "");
+        #10 $display("|--------|%s|%s|%s|------|", "----------------------------------", "----------------------------------", "----------------------------------");
+        #15 $monitor("| %b   | %30b | %30b | %30b | %b |", opcode, a, b, y, flags);
     end
 endmodule

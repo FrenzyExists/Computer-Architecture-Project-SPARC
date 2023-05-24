@@ -3,5 +3,7 @@
   "verilog.languageServer.enabled": true,
   "verilog.ctags.path": "/usr/local/bin/ctags",
   "verilog.linting.modelsim.runAtFileLocation": true,
-  "verilog.linting.linter": "iverilog"
+  "verilog.linting.linter": "iverilog",
+  "editor.tabCompletion": "on",
+  "terminal.integrated.tabs.enableAnimation": false
 }

@@ -66,6 +66,8 @@ module control_unit_test;
     end
 
     initial begin
+        $dumpfile("gtk-wave-testers/control-unit.vcd"); // pass this to GTK Wave to visualize better wtf is going on
+        $dumpvars(0, control_unit_test);
         #80
         $finish;
     end 
