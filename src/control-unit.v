@@ -1,4 +1,61 @@
 /**************************************************************
+* Module Name: control_unit_mux
+***************************************************************
+* Description:
+*     This module represents a control unit multiplexer. It selects and outputs control signals based on the input select signal (S) and the input data (cu_in_mux).
+* 
+* Ports:
+*     - ID_ALU_OP_out (output reg [3:0]): 4-bit output for ALU operation.
+*     - ID_jmpl_instr_out (output reg): Output for jump-link (jmpl) instruction.
+*     - ID_call_instr_out (output reg): Output for call instruction.
+*     - ID_branch_instr_out (output reg): Output for branch instruction.
+*     - ID_load_instr_out (output reg): Output for load instruction.
+*     - ID_register_file_Enable_out (output reg): Output for register file enable.
+*     - ID_data_mem_SE (output reg): Output for data memory store-enable.
+*     - ID_data_mem_RW (output reg): Output for data memory read-write.
+*     - ID_data_mem_Enable (output reg): Output for data memory enable.
+*     - ID_data_mem_Size (output reg [1:0]): 2-bit output for data memory size.
+*     - I31_out (output reg): Output for I31 signal.
+*     - I30_out (output reg): Output for I30 signal.
+*     - I24_out (output reg): Output for I24 signal.
+*     - I13_out (output reg): Output for I13 signal.
+*     - ID_ALU_OP_instr (output reg [3:0]): 4-bit output for ALU operation instruction.
+*     - CC_Enable (output reg): Output for condition code (CC) enable.
+* 
+*     - S (input): Select signal.
+*     - cu_in_mux (input [18:0]): Input data for control unit multiplexer.
+* 
+* Usage:
+*     1. Instantiate the module in your Verilog design.
+*     2. Connect the select signal (S) and the input data (cu_in_mux) appropriately.
+*     3. The control signals will be available on the corresponding output ports.
+* 
+* Notes:
+*     - The control signals are selected based on the value of the select signal (S) and the input data (cu_in_mux).
+*     - When S is high (1'b1), all output signals are set to 0.
+*     - Ensure that the width of the input data (cu_in_mux) is compatible with the module's interface.
+* bra
+*/
+module control_unit_mux(
+    output reg ID_branch_instr_out,            // 3
+    output reg [17:0] CU_SIGNALS,          // 15,16,17,18
+
+    input S,
+    input [18:0] cu_in_mux
+    );
+
+    always  @(S, cu_in_mux) begin
+        if (S == 1'b0) begin
+            ID_branch_instr_out         <= cu_in_mux[18];
+            CU_SIGNALS                  <= cu_in_mux[17:0];
+        end else begin
+            ID_branch_instr_out         <= 1'b0;
+            CU_SIGNALS                  <= 18'b0;
+        end
+    end
+endmodule
+
+/**************************************************************
  * Module Name: control_unit
  **************************************************************
  * The control_unit module is responsible for generating control signals based on the input instruction.
@@ -180,7 +237,6 @@ module control_unit(
                 ID_jmpl_instr               <= 1'b0;
                 ID_call_instr               <= 1'b0;
                 ID_load_instr               <= 1'b0; 
-                ID_register_file_Enable     <= 1'b1;
                 CC_Enable                   <= 1'b0;
                 // Ask the professor for these
                 ID_data_mem_SE              <= 1'b0;
@@ -192,11 +248,14 @@ module control_unit(
                     // We specify the ALU to simply forward B.
                     // The source operand2 handler will deal with the
                     // Sethi instruction
-                    ID_ALU_OP_instr         <= 4'b1110;
-                    ID_branch_instr         <= 1'b0;
+                    ID_ALU_OP_instr             <= 4'b1110;
+                    ID_branch_instr             <= 1'b0;
+                    ID_register_file_Enable     <= 1'b1;
                 end
                 else if (is_sethi == 3'b010) begin // So this is actually a branch instruction
-                    ID_branch_instr         <= 1'b1;
+                    ID_branch_instr             <= 1'b1;
+                    ID_register_file_Enable     <= 1'b0;
+                    ID_ALU_OP_instr             <= 4'b0000;
                 end
             end
             2'b01: begin // Call Instruction
