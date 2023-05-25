@@ -64,14 +64,31 @@ display_options() {
         if [ "$i" -eq $cursor_pos ]; then
             printf "${yellow}>>> %s${reset}\n" "${options[$i]}"
         else
-            printf "    %s\n" "${options[$i]}"
+            printf "    %s%+25s\n" "${options[$i]}" ""
         fi
     done
 }
 
-help() {
-    printf "NO BITCHES\n"
+analize_plz() {
+    clear
+    printf "Boob Beep Bop. Booting up...\nIt's time for...\n"
+    printf "%b\n" "
+${magenta}  _  _             _                         _             _         _    
+${magenta} | || |__ _ _ _ __| |_ __ ____ _ _ _ ___    /_\  _ _  __ _| |_  _ __(_)___
+${yellow} | __ / _\` | '_/ _\` \ V  V / _\` | '_/ -_)  / _ \| ' \/ _\` | | || (_-< (_-<
+${blue} |_||_\__,_|_| \__,_|\_/\_/\__,_|_| \___| /_/ \_\_||_\__,_|_|\_, /__/_/__/
+${blue}                                                             |__/         
+${reset}"
+
+    printf "%b\n" "There's atm 3 kinds of analysis done in this project for funsies
+    - Timing Analysis ==> Measures speed of design
+    - Power Analysis  ==> Measures power consumption of design
+    - Fault Analysis  ==> Makes sure shit doesn't fuck up
+    "
+
+    printf "Select the analysis you want!\n"
 }
+
 
 build() {
     boi="
@@ -94,8 +111,9 @@ ${reset}
         local filename="$1"
         local filevvp=$(basename "$filename")
         filevvp="${filevvp%.*}.vvp"
-        # printf "\n\n\rBuilding %-25s     %-25s" "$parent_dir/$verilog_dir/$filename" "$parent_dir/$build_dir/$filevvp"
         iverilog -o "$parent_dir/$build_dir/$filevvp" "$parent_dir/$verilog_dir/$filename" 2>/dev/null || printf "        %bUh... this file fucked up%b" "$red" "$reset"
+        printf "\rBuilding %-25s%+25s" "$filename" ""
+        printf "\033[3A"  # Clear 3 lines down
         unset filename
         unset filevvp
     }
@@ -134,67 +152,52 @@ ${reset}
     build_all() {
         printf "\n\nBuilding Source Modules:\n---------------------------------------------\n"
         local directory="$parent_dir/$verilog_dir"
-        tput civis # Hide the terminal cursor
 
         build_files "$directory"
-
         printf "    DONE （＾ｖ＾）\n\nBuilding Test Modules:\n---------------------------------------------\n"
 
         directory="$parent_dir/$tester_dir"
         build_files "$directory"
 
-        tput cnorm # Restore the terminal cursor
         printf "\nDONE （＾ｖ＾）\n\n"
     }
 
     build_specific() {
         local options=()
-        while IFS= read -r -d '' options; do
-            filename=$(basename "$options")
+        while IFS= read -r -d '' file; do
+            filename=$(basename "$file")
             options+=("$filename")
         done < <(find "$parent_dir/$verilog_dir" -type f -print0)
         
+        # Add "finish" option at the end
         options+=("finish")
-        # Get length of options array
-        options_len=${#options[@]}
+        
+        options_len=${#options[@]} # Get length of options array
 
-        # Set initial cursor position to first option
         cursor_pos=0
-        tput civis # Hide the terminal cursor
+
         while true; do
             # Clear screen and display options
-            # clear
             tput cuu ${#options[@]}
             display_options
 
-            # Move the cursor back to the first line of options
-            # tput cuu ${#options[@]}-20
-            read -s -n 1 key    # Wait for user input
+            read -s -n 1 key
 
             if [ "$key" == "" ]; then
-            filename=${options[$cursor_pos]}
-            if [ "$filename" == "finish" ]; then
-                printf "    %s\n" "DONE （＾ｖ＾）"
-                sleep 1.5
-                break
-            fi
-            build_file "$filename"
-
-
-            # printf "\n    %-24s%s\n" "Building" "${filenames[$cursor_pos]}"
-            # filename=${filenames[$cursor_pos]}
-            # local vfile="${filename%.*}.vvp"
-            # iverilog -o "$parent_dir/$build_dir/$vfile" "$directory/$filename" 2>/dev/null || printf "           %bUh this file fucked up%b" "$red" "$reset"
-            # tput cnorm # Restore the terminal cursor
-            
-            #     exit
+                filename=${options[$cursor_pos]}
+                if [ "$filename" == "finish" ]; then
+                    printf "\r%-25s%+25s\n" "DONE （＾ｖ＾）" ""
+                    sleep 1.5
+                    break
+                fi
+                build_file "$filename"
             fi
             tput cuu ${#options[@]}
             # Check which key was pressed
             case "$key" in
-            "A") cursor_up ;;
-            "B") cursor_down ;;
-            *) ;;
+                "A") cursor_up ;;
+                "B") cursor_down ;;
+                *) ;;
             esac
         done
     }
@@ -273,7 +276,9 @@ Requires
 
   ${cyan}»» ${description}${reset}
 "
-    options=("help" "build" "list components" "LET ME OUT!!!")
+    tput civis # Hide the terminal cursor
+
+    options=("analize" "build" "LET ME OUT!!!")
 
     # Get length of options array
     options_len=${#options[@]}
@@ -298,13 +303,12 @@ Requires
                 build
                 welcome
                 ;;
-            "help")
-                help
+            "analize")
+                analize_plz
                 ;;
             "LET ME OUT!!!")
-                exit
+                tput cnorm # Restore the terminal cursor
                 ;;
-
             *)
                 printf "    » Options is still in construction. Pwease wait till pwogwamer stops pwocwastinating :3\n"
             ;;
@@ -322,4 +326,9 @@ Requires
 }
 
 
-welcome
+# Check if Icarus Verilog is installed
+if ! command -v iverilog &>/dev/null 2>&1; then
+    printf "\nIcarus Verilog not found. You should run the script with the --doctor flag to get the prob fixed.\n"
+else
+    welcome
+fi
