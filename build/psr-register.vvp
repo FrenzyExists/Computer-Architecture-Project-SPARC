@@ -1,0 +1,57 @@
+#! /usr/bin/vvp
+:ivl_version "13.0 (devel)" "(s20221226-107-g3612577b5)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision + 0;
+:vpi_module "/usr/lib/ivl/system.vpi";
+:vpi_module "/usr/lib/ivl/vhdl_sys.vpi";
+:vpi_module "/usr/lib/ivl/vhdl_textio.vpi";
+:vpi_module "/usr/lib/ivl/v2005_math.vpi";
+:vpi_module "/usr/lib/ivl/va_math.vpi";
+S_0x55a4bc3eb2e0 .scope module, "PSR_register" "PSR_register" 2 21;
+ .timescale 0 0;
+    .port_info 0 /OUTPUT 4 "out";
+    .port_info 1 /OUTPUT 1 "carry";
+    .port_info 2 /INPUT 4 "flags";
+    .port_info 3 /INPUT 1 "enable";
+    .port_info 4 /INPUT 1 "clr";
+    .port_info 5 /INPUT 1 "clk";
+v0x55a4bc3eb530_0 .var "carry", 0 0;
+o0x7f16123b5048 .functor BUFZ 1, C4<z>; HiZ drive
+v0x55a4bc40d1f0_0 .net "clk", 0 0, o0x7f16123b5048;  0 drivers
+o0x7f16123b5078 .functor BUFZ 1, C4<z>; HiZ drive
+v0x55a4bc40d2b0_0 .net "clr", 0 0, o0x7f16123b5078;  0 drivers
+o0x7f16123b50a8 .functor BUFZ 1, C4<z>; HiZ drive
+v0x55a4bc40d380_0 .net "enable", 0 0, o0x7f16123b50a8;  0 drivers
+o0x7f16123b50d8 .functor BUFZ 4, C4<zzzz>; HiZ drive
+v0x55a4bc40d440_0 .net "flags", 3 0, o0x7f16123b50d8;  0 drivers
+v0x55a4bc40d570_0 .var "out", 3 0;
+E_0x55a4bc3fd7f0/0 .event negedge, v0x55a4bc40d2b0_0;
+E_0x55a4bc3fd7f0/1 .event posedge, v0x55a4bc40d1f0_0;
+E_0x55a4bc3fd7f0 .event/or E_0x55a4bc3fd7f0/0, E_0x55a4bc3fd7f0/1;
+    .scope S_0x55a4bc3eb2e0;
+T_0 ;
+    %wait E_0x55a4bc3fd7f0;
+    %load/vec4 v0x55a4bc40d2b0_0;
+    %flag_set/vec4 8;
+    %jmp/0xz  T_0.0, 8;
+    %pushi/vec4 0, 0, 4;
+    %assign/vec4 v0x55a4bc40d570_0, 0;
+    %jmp T_0.1;
+T_0.0 ;
+    %load/vec4 v0x55a4bc40d380_0;
+    %flag_set/vec4 8;
+    %jmp/0xz  T_0.2, 8;
+    %load/vec4 v0x55a4bc40d440_0;
+    %assign/vec4 v0x55a4bc40d570_0, 0;
+    %load/vec4 v0x55a4bc40d440_0;
+    %parti/s 1, 2, 3;
+    %assign/vec4 v0x55a4bc3eb530_0, 0;
+T_0.2 ;
+T_0.1 ;
+    %jmp T_0;
+    .thread T_0;
+# The file index is used to find the file name in the following table.
+:file_names 3;
+    "N/A";
+    "<interactive>";
+    "/home/pikachu/Desktop/architecture_boogaloo/src/psr-register.v";
