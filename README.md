@@ -26,9 +26,9 @@ Anyway, during phase 1 we pretty much spearheaded it. Doing the basic components
 
 Phase 2 was the filter phase. A freaking diagram... turned out to be the filter phase... let that sink in. Lots of classmates dropping because of how challenging this phase was. You basically needed to have a very good grasp on an abstract system and in this case, on SPARC. The funny thing however was that many of the issues we had could be solved with logic boxes. If it was too hard to grasp or put into multiplexers, just put a logic box and call it a day. It took us almost 1 and half months to actually grasp that... yeah, that's the sound of feeling ashamed. The other thing that was quite the challenge was dealing with branches and figuring out a way to modify the PC based on the instruction we had during the *Decoding Stage*. Like, bruh, we tried having lots of multiplexers, we tried to put a single big logic box, we tried different combinations and each time our professor asked us to see if know what we oversaw a small, discrete detail that essentially changed everything. 
 
-The last crazy blooper was when we connected the CU signals directly to the respective pipeline and completely forgot to propagate the signal across each pipeline. Translating this in verilog would cause it to have an unsynchronized system because the system is having a fucking seizure. That and the fact that we connected the output of the ALU into both the address and the Data In of the Data Memory, which means that instead of saving the destination operand we saved the address... in the address... instead of connecting the destination operand that was propagated into the Data In to save it... You can imagine how the conversation went when the professor facepalmed for us doing that.
+The last crazy blooper was when we connected the CU signals directly to the respective pipeline and completely forgot to propagate the signal across each pipeline. Translating this in verilog would cause it to have an unsynchronized system because the system is having a seizure. That and the fact that we connected the output of the ALU into both the address and the Data In of the Data Memory, which means that instead of saving the destination operand we saved the address... in the address... instead of connecting the destination operand that was propagated into the Data In to save it... You can imagine how the conversation went when the professor facepalmed for us doing that.
 
-So after bleeding blood and tears and performing multiple ritual sacrifices we managed to pass phase 2 and unto phase 3. This phase was back to verilog, but we'd be designing part of the system, being the pipelines along with the CU and its multiplexer that will not do anything. "It's going to be easy", we said. "It's just like phase 1 but a bit bigger", we said. Boi oh boi we sure were FUCKING WRONG. Making different components tto work with each other was easy, making it work properly at the correct clock-time was harder than we expected. We had issues monitoring out our signals because of the large number of signals we had to keep track of. Eventually we had to search for a tool and found GTK-Wave. Its a free open-source tool available on Windows, GNU/Linux and OS-X that takes a .vcd file and allows the user to keep track of a hardware design's input and outputs (including their inner components) much easier.
+So after bleeding blood and tears and performing multiple ritual sacrifices we managed to pass phase 2 and unto phase 3. This phase was back to verilog, but we'd be designing part of the system, being the pipelines along with the CU and its multiplexer that will not do anything. "It's going to be easy", we said. "It's just like phase 1 but a bit bigger", we said. We couldn't be any more wrong. Making different components tto work with each other was easy, making it work properly at the correct clock-time was harder than we expected. We had issues monitoring out our signals because of the large number of signals we had to keep track of. Eventually we had to search for a tool and found GTK-Wave. Its a free open-source tool available on Windows, GNU/Linux and OS-X that takes a .vcd file and allows the user to keep track of a hardware design's input and outputs (including their inner components) much easier.
 
 For this phase we made small mistakes that if it wasn't for GTK-Wave, we could've have seen it (or maybe we could but would've taken longer).
 
@@ -51,15 +51,17 @@ The SPARC V8 verilog hardware design includes the following components:
 - [ALU](/documentation/alu.md)
 - [Operand2 Handler](/documentation/operand-handler.md)
 - [Instruction Memory](/documentation/instruction-memory.md)
-- Register File
-- PSR (Processor State Register)
+- [Register File](/documentation/register-file.md)
+- [PSR (Processor State Register)](/documentation/psr.md)
+
+***[Handlers](/documentation/handlers.md)***
+
 - Data Memory
 - Control Unit
 - Reset Handler
 - Condition Handler
 - PC/nPC Handler
 - WB Output Handler
-
 
 ## PPU Diagram
 
