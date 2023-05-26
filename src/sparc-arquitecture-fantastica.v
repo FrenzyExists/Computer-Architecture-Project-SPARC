@@ -30,9 +30,10 @@ module sparc_fantastica;
     reg clk;    
 
     // Controls when the flow will flow and when it should stop
-    reg LE;
+    wire PC_nPC_LE;
+    wire IF_ID_LE;
+
     reg reset;
-    reg enable;
 
     // These are used to calculate the instruction that should be executed by
     // Modifying the Program Counter (PC)
@@ -70,7 +71,7 @@ module sparc_fantastica;
 
     // A register where you store stuff, propagates the 
     // instruction across all pipelines
-    reg  [4:0] RD_ID = 5'b01011;
+    wire  [4:0] RD_ID;
     wire [4:0] RD_EX;
     wire [4:0] RD_MEM;
     wire [4:0] RD_WB;
@@ -153,7 +154,7 @@ module sparc_fantastica;
     PC_nPC_Register PC_reg (
         .clk        (clk),
         .clr        (clr),
-        .LE         (LE),
+        .LE         (PC_nPC_LE),
         .nPC        (nPC),
         .ALU_OUT    (ALU_OUT),
         .TA         (TA),
@@ -171,11 +172,11 @@ module sparc_fantastica;
     initial begin
         fi = $fopen("precharge/sparc-instructions-precharge.txt","r");
         Addr = 8'b00000000;
-        $display("Precharging Instruction Memory...\n---------------------------------------------\n");
+        // $display("Precharging Instruction Memory...\n---------------------------------------------\n");
         while (!$feof(fi)) begin
-            if (Addr % 4 == 0 && !$feof(fi)) $display("\nLoading Next Instruction...\n---------------------------------------------");
+            // if (Addr % 4 == 0 && !$feof(fi)) $display("\nLoading Next Instruction...\n---------------------------------------------");
             code = $fscanf(fi, "%b", data);
-            $display("---- %b ----\n", data);
+            // $display("---- %b ----\n", data);
             rom.Mem[Addr] = data;
             Addr = Addr + 1;
         end
@@ -197,7 +198,7 @@ module sparc_fantastica;
         .PC                             (PC),
         .instruction                    (instruction),
         .reset                          (reset), 
-        .LE                             (LE), 
+        .LE                             (IF_ID_LE), 
         .clk                            (clk), 
         .clr                            (clr),
 
@@ -211,6 +212,16 @@ module sparc_fantastica;
         .I28_25                         (cond),
         .instruction_out                (instruction_out) 
     );
+
+    // MUX MUX!
+    mux_2x5 ID_MUX_thing (
+        .I0     (rd),
+        .I1     (5'b00111),
+
+        .S      (ID_CU[1]),
+        .Y      (RD_ID)
+    );
+
 
     // Register File, saves operand and destiny registers
     register_file REG_FILE (
@@ -321,17 +332,16 @@ module sparc_fantastica;
     initial begin
         fi = $fopen("precharge/sparc-instructions-2-precharge.txt","r");
         Addr = 8'b00000000;
-        $display("Precharging Data Memory...\n---------------------------------------------\n");
+        // $display("Precharging Data Memory...\n---------------------------------------------\n");
         while (!$feof(fi)) begin
             if (Addr % 4 == 0 && !$feof(fi)) $display("\nPrecharging Next Instruction...\n---------------------------------------------");
             code = $fscanf(fi, "%b", data);
-            $display("Address = %d  code = %b, time=%d", Addr, data, $time);
+            // $display("Address = %d  code = %b, time=%d", Addr, data, $time);
             ram.Mem[Addr] = data;
             Addr = Addr + 1;
         end
         $fclose(fi);
     end
-
 
     mux_4x1 MEM_MUX (
         .S (forwardOutputHandler),
@@ -363,7 +373,27 @@ module sparc_fantastica;
     );
 
     hazard_forwarding_unit HAZARD (
-
+        .forwardMX1                     (forwardMX1),
+        .forwardMX2                     (forwardMX2),
+        .forwardMX3                     (forwardMX3),
+        
+        .nPC_LE                         (PC_nPC_LE),
+        .PC_LE                          (PC_nPC_LE),
+        .IF_ID_LE                       (IF_ID_LE),
+        
+        .CU_S                           (),
+        
+        .EX_Register_File_Enable        (EX_CU[3]),
+        .MEM_Register_File_Enable       (MEM_CU),
+        .WB_Register_File_Enable        (WB_Register_File_Enable),
+        
+        .EX_RD                          (RD_EX),
+        .MEM_RD                         (RD_MEM),
+        .WB_RD                          (RD_WB),
+        
+        .ID_rs1                         (rs1),
+        .ID_rs2                         (rs2),
+        .ID_rd                          (rd)
     );
 
 
@@ -405,7 +435,6 @@ module sparc_fantastica;
     end
 
     initial begin
-        LE = 1'b1;
         reset = 1;
         #3;
         reset = 0;

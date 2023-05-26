@@ -129,17 +129,15 @@ module PC_nPC_Register(
     );
 
     always @ (posedge clk, posedge clr) begin
-        if (clk == 1) begin
-            if(clr == 1) begin
-                OUT <= 32'b0;
-            end else if (LE) begin
-                case (mux_select)
-                    2'b00: OUT <= nPC;
-                    2'b01:  OUT <= TA;
-                    2'b10:  OUT <= ALU_OUT;
-                    default: OUT <= OUT;
-                endcase
-            end
+        if(clr) begin
+            OUT <= 32'b0;
+        end else if (LE) begin
+            case (mux_select)
+                2'b00: OUT <= nPC;
+                2'b01:  OUT <= TA;
+                2'b10:  OUT <= ALU_OUT;
+                default: OUT <= OUT;
+            endcase
         end
-    end 
+    end
 endmodule

@@ -34,8 +34,8 @@ module phase3Tester;
     reg enable;
 
     // Counters
-    wire [31:0] nPC;       // The Next Program Counter
-    wire [31:0] PC;       // The actual Fucking Program Counter. This counter state is at the Fetch State
+    wire [31:0] nPC;     // The Next Program Counter
+    wire [31:0] PC;      // The actual Program Counter. This counter state is at the Fetch State
     wire [31:0] PC_ID;   // The Program Counter state at the Decode Stage
     wire [31:0] PC_EX;   // The Program Counter state at the Execute State
     wire [31:0] PC_MEM;  // The Program Counter state at the Memory State
@@ -225,33 +225,11 @@ module phase3Tester;
 
     initial begin
         $dumpfile("gtk-wave-testers/sparc-mini-fantastica.vcd"); // pass this to GTK Wave to visualize better wtf is going on
-        $dumpvars(0,phase3Tester);
+        $dumpvars(0, phase3Tester);
         #52;
         $display("\n----------------------------------------------------------\nSimmulation Complete! Remember to dump this on GTK Wave and subscribe to PewDiePie...");
         $finish;
     end 
-
-    // always @(posedge clk, negedge clr) begin
-
-    //     $display("\n---------------------------------------------- reset: %b | TIME: %d\n", reset, $time);
-    //     $display(">>> IF Stage");
-    //     $display("-------------------> Instruction that is Entering: %b | clk: %b | clr: %b | PC: %d | nPC: %d", instruction, clk, clr, PC, nPC);
-    //     // $display(">>> Control Unit");
-    //     // $display("-------------------> call: %b | jmpl: %b | load: %b | Register File Enable: %b | Data MEM SE: %b | Data MEM R/W: %b | Data MEM Enable: %b", ID_CU[0], ID_CU[1], ID_CU[2], ID_CU[3], ID_CU[4], ID_CU[5], ID_CU[6]);
-    //     // $display("                     Data MEM Size: %b | Condition Code Enable: %b | I31: %b | I30: %b | I24: %b | I13: %b | Alu Opcode: %b | Branch Instruction: %b", ID_CU[8:7], ID_CU[9], ID_CU[10], ID_CU[11], ID_CU[12], ID_CU[13], ID_CU[17:14], ID_CU[18]);
-    //     $display(">>> ID Stage");
-    //     $display("-------------------> Instruction that is Decoded: %b | Imm22: | Rs1: %b | Rs2: %b | Rd: %b | RD: %b | PC: %d", instruction_out, rs1, rs2, rd, RD_ID, PC_ID);
-    //     $display("                     call: %b | jmpl: %b | load: %b | Register File Enable: %b | Data MEM SE: %b | Data MEM R/W: %b | Data MEM Enable: %b | branch cond instruction: %b", ID_CU[0], ID_CU[1], ID_CU[2], ID_CU[3], ID_CU[4], ID_CU[5], ID_CU[6], I29_branch_instr);
-    //     $display("                     Data MEM Size: %b | Condition Code Enable: %b | I31: %b | I30: %b | I24: %b | I13: %b | Alu Opcode: %b | Branch Instruction: %b ", ID_CU[8:7], ID_CU[9], ID_CU[10], ID_CU[11], ID_CU[12], ID_CU[13], ID_CU[17:14], ID_CU[18]);        
-    //     $display(">>> EX Stage");
-    //     $display("-------------------> ALU Opcode: %b | Source Operand Handler Is: %b | Imm22: %b | Condition Code Enable: %b | RD: %b | PC: %d", ALU_OP, IS, EX_Imm22, CC_Enable, RD_EX, PC_EX);
-    //     $display("                     call: %b | jmpl: %b | load: %b | Register File Enable: %b | Data MEM SE: %b | Data MEM R/W: %b | Data MEM Enable: %b", EX_CU[0], EX_CU[1], EX_CU[2], EX_CU[3], EX_CU[4], EX_CU[5], ID_CU[6]);
-    //     $display("                     Data Mem Size: %b", EX_CU[8:7]);
-    //     $display(">>> MEM Stage");
-    //     $display("-------------------> Data MEM SE: %b | Data MEM R/W: %b | Data MEM Enable: %b | Data MEM Size: %b | jmpl: %b | call: %b | load: %b | register file enable: %b | RD: %b | PC: %d", DataMemInstructions[0], DataMemInstructions[1], DataMemInstructions[2], DataMemInstructions[4:3], OutputHandlerInstructions[0], OutputHandlerInstructions[1], OutputHandlerInstructions[2], MEM_CU, RD_MEM, PC_MEM);
-    //     $display(">>> WB Stage");
-    //     $display("-------------------> Data MEM Output: %b | Register File Enable: %b | RD: %b", WB_Register_File_Enable, WB_Register_File_Enable, RD_WB);
-    // end
 
     initial  begin
         $monitor("\n\n\nTIME: %d | S: %b\n---------------------------------\

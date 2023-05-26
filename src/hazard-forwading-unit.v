@@ -1,5 +1,4 @@
 
-
 module hazard_forwarding_unit (
     output reg [1:0] forwardMX1,
     output reg [1:0] forwardMX2,
@@ -22,12 +21,6 @@ module hazard_forwarding_unit (
     input wire [4:0] ID_rs1,
     input wire [4:0] ID_rs2,
     input wire [4:0] ID_rd
-    
-    // output reg [1:0] HFU_Forw_PA, HFU_Forw_PB, HFU_Forw_PC,
-
-    // output reg HFU_NOP, HFU_IFID_LE, HFU_LE_PC,
-    // input [3:0] HFU_EX_Rd, HFU_MEM_Rd, HFU_WB_Rd, HFU_ID_Rn, HFU_ID_Rm, 
-    // input HFU_EX_RF_enable, HFU_MEM_RF_enable, HFU_WB_RF_enable, HFU_EX_load_instr, HFU_ID_shift_imm
 );
 
     always @ (*) begin
@@ -69,27 +62,17 @@ module hazard_forwarding_unit (
         else forwardMX3 <= 2'b00; //Not forwarding (passing PB from the register file)
 
 /**********************************************************************************LOAD HAZARD DETECTION & HANDLING**************************************************************************************/
-        //Hazard asserted
         // if (HFU_EX_load_instr && ((ID_rs2 === HFU_EX_Rd) || ((ID_rs1 === HFU_EX_Rd) && !HFU_ID_shift_imm))) begin
-        if ((ID_rs2 === ID_rd) || (ID_rs1 === ID_rd)) begin
-            nPC_LE        <= 1'b0;
-            PC_LE         <= 1'b0;
-            IF_ID_LE      <= 1'b0;
-
-            // HFU_NOP <= 1'b1; //Forward Control Signals corresponding to a NOP instruction
-            // HFU_IFID_LE <= 1'b0; //Disable IF/ID Pipeline Register from loading
-            // HFU_LE_PC <= 1'b0; //Disable Load Enable of the Program Counter (PC)
-        end
-
-        //Hazard not asserted
-        else begin
-
-            nPC_LE        <= 1'b0;
-            PC_LE         <= 1'b0;
-            IF_ID_LE      <= 1'b0;
-            // HFU_NOP <= 1'b0;//Dont Forward Control Signals corresponding to a NOP instruction
-            // HFU_IFID_LE <= 1'b1; // IF/ID Pipeline Register is enabled
-            // HFU_LE_PC <= 1'b1; // Program Counter is Load Enable
+        if ((ID_rs2 === ID_rd) || (ID_rs1 === ID_rd)) begin // Hazard asserted
+            nPC_LE          <= 1'b0; // Disable Load Enable of the Next Program Counter (nPC)
+            PC_LE           <= 1'b0; // Disable Load Enable of the Program Counter (PC)
+            IF_ID_LE        <= 1'b0; // Disable IF/ID Pipeline Register from loading
+            CU_S            <= 1'b1; // Forward Control Signals corresponding to a NOP instruction
+        end else begin                                     // Hazard not asserted
+            nPC_LE          <= 1'b1; // Program Counter is Load Enable
+            PC_LE           <= 1'b1; // Next Program Counter is Load Enable
+            IF_ID_LE        <= 1'b1; // IF/ID Pipeline Register is enabled
+            CU_S            <= 1'b0; // Dont Forward Control Signals corresponding to a NOP instruction
         end
     end
 endmodule

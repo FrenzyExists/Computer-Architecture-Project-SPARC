@@ -105,9 +105,6 @@ module alu (
                 C = carry[32];
                 V = (~a[31] && ~b[31] && y[31]) | (a[31] && b[31] && ~y[31]);
                 flags = {Z, N, C, V};
-
-                // overflow = ({carry,y[31]} == 2'b01);
-                // flags = {y == 0, y[31], carry, overflow};
             end
             4'b0010: begin
                 {carry, y} = a - b;

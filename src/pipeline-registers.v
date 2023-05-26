@@ -58,30 +58,28 @@
     output reg [3:0]  I28_25,            // cond, for Branch
     output reg [31:0] instruction_out   
     );
-    always@(posedge clk, negedge clr, PC) begin
-        if (clk) begin
-            if (reset == 1 | PC == 32'bx) begin 
-                I21_0                <= 21'b0;
-                I29_0                <= 29'b0;
-                I29_branch_instr     <= 32'b0;
-                I18_14               <= 32'b0;
-                I4_0                 <= 5'b0;
-                I29_25               <= 5'b0;
-                I28_25               <= 5'b0;
-                instruction_out      <= 32'b0;
-                PC_ID_out            <= 32'b0;
-            end else begin
-                I21_0                <= instruction[21:0];
-                I29_0                <= instruction[29:0];
-                I29_branch_instr     <= instruction[29];
-                I18_14               <= instruction[18:14];
-                I4_0                 <= instruction[4:0];
-                I29_25               <= instruction[29:25];
-                I28_25               <= instruction[28:25]; 
-                instruction_out      <= instruction;
-                PC_ID_out            <= PC;
-            end
-        end     
+    always@(posedge clk, clr) begin
+        if (reset == 1) begin 
+            I21_0                <= 21'b0;
+            I29_0                <= 29'b0;
+            I29_branch_instr     <= 32'b0;
+            I18_14               <= 32'b0;
+            I4_0                 <= 5'b0;
+            I29_25               <= 5'b0;
+            I28_25               <= 5'b0;
+            instruction_out      <= 32'b0;
+            PC_ID_out            <= 32'b0;
+        end else begin
+            I21_0                <= instruction[21:0];
+            I29_0                <= instruction[29:0];
+            I29_branch_instr     <= instruction[29];
+            I18_14               <= instruction[18:14];
+            I4_0                 <= instruction[4:0];
+            I29_25               <= instruction[29:25];
+            I28_25               <= instruction[28:25]; 
+            instruction_out      <= instruction;
+            PC_ID_out            <= PC;
+        end
     end 
 endmodule
 
@@ -149,33 +147,30 @@ module pipeline_ID_EX (
 
     output reg [8:0]  EX_control_unit_instr      // The rest of the control unit instructions that don't need to be deconstructed
 );
-    always @(posedge clk, negedge clr) begin
-        if (clk) begin
-            if (clr | PC == 32'bx) begin
-                PC_EX                       <= 32'b0;
-                EX_IS_instr                 <= 4'b0;
-                EX_ALU_OP_instr             <= 4'b0;
-                EX_control_unit_instr       <= 9'b0;
-                EX_RD_instr                 <= 5'b0;
-                EX_CC_Enable_instr          <= 1'b0;
-                EX_Imm22                    <= 22'b0;
-                EX_MX1                      <= 32'b0;
-                EX_MX2                      <= 32'b0;
-                EX_MX3                      <= 32'b0; 
-            end else begin
-                PC_EX                       <= PC;
-                EX_IS_instr                 <= ID_control_unit_instr[13:10];
-                EX_ALU_OP_instr             <= ID_control_unit_instr[17:14];
-                EX_control_unit_instr       <= ID_control_unit_instr[8:0];
-                EX_RD_instr                 <= ID_RD_instr;
-                EX_CC_Enable_instr          <= ID_control_unit_instr[9];
-                EX_Imm22                    <= Imm22;
-                EX_MX1                      <= ID_MX1;
-                EX_MX2                      <= ID_MX2;
-                EX_MX3                      <= ID_MX3;
-            end
+    always @(posedge clk, clr) begin
+        if (clr) begin
+            PC_EX                       <= 32'b0;
+            EX_IS_instr                 <= 4'b0;
+            EX_ALU_OP_instr             <= 4'b0;
+            EX_control_unit_instr       <= 9'b0;
+            EX_RD_instr                 <= 5'b0;
+            EX_CC_Enable_instr          <= 1'b0;
+            EX_Imm22                    <= 22'b0;
+            EX_MX1                      <= 32'b0;
+            EX_MX2                      <= 32'b0;
+            EX_MX3                      <= 32'b0; 
+        end else begin
+            PC_EX                       <= PC;
+            EX_IS_instr                 <= ID_control_unit_instr[13:10];
+            EX_ALU_OP_instr             <= ID_control_unit_instr[17:14];
+            EX_control_unit_instr       <= ID_control_unit_instr[8:0];
+            EX_RD_instr                 <= ID_RD_instr;
+            EX_CC_Enable_instr          <= ID_control_unit_instr[9];
+            EX_Imm22                    <= Imm22;
+            EX_MX1                      <= ID_MX1;
+            EX_MX2                      <= ID_MX2;
+            EX_MX3                      <= ID_MX3;
         end
-        $display("PC REG %d", PC_EX);
     end
 endmodule
 
@@ -230,8 +225,8 @@ module pipeline_EX_MEM (
     output reg [31:0] PC_MEM,
     output reg [4:0]  MEM_RD_instr
 );
-    always @(posedge clk, negedge clr) begin
-        if (clr | PC === 32'bx) begin
+    always @(posedge clk, clr) begin
+        if (clr) begin
             MEM_ALU_OUT                  <= 32'b0;
             Data_Mem_instructions        <= 5'b0;
             Output_Handler_instructions  <= 3'b0;
@@ -292,7 +287,7 @@ module pipeline_MEM_WB (
     output reg [31:0] WB_RD_out,
     output reg        WB_Register_File_Enable 
     );
-    always@(posedge clk, negedge clr) begin
+    always@(posedge clk, clr) begin
         if (clr) begin
             WB_RD_instr                 <= 5'b0;
             WB_RD_out                   <= 32'b0; 
