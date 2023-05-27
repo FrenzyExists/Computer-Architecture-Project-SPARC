@@ -58,8 +58,8 @@
     output reg [3:0]  I28_25,            // cond, for Branch
     output reg [31:0] instruction_out   
     );
-    always@(posedge clk, clr) begin
-        if (reset == 1) begin 
+    always@(posedge clk) begin
+        if (reset) begin 
             I21_0                <= 21'b0;
             I29_0                <= 29'b0;
             I29_branch_instr     <= 32'b0;
@@ -147,7 +147,7 @@ module pipeline_ID_EX (
 
     output reg [8:0]  EX_control_unit_instr      // The rest of the control unit instructions that don't need to be deconstructed
 );
-    always @(posedge clk, clr) begin
+    always @(posedge clk) begin
         if (clr) begin
             PC_EX                       <= 32'b0;
             EX_IS_instr                 <= 4'b0;
@@ -225,7 +225,7 @@ module pipeline_EX_MEM (
     output reg [31:0] PC_MEM,
     output reg [4:0]  MEM_RD_instr
 );
-    always @(posedge clk, clr) begin
+    always @(posedge clk) begin
         if (clr) begin
             MEM_ALU_OUT                  <= 32'b0;
             Data_Mem_instructions        <= 5'b0;
@@ -287,7 +287,7 @@ module pipeline_MEM_WB (
     output reg [31:0] WB_RD_out,
     output reg        WB_Register_File_Enable 
     );
-    always@(posedge clk, clr) begin
+    always@(posedge clk) begin
         if (clr) begin
             WB_RD_instr                 <= 5'b0;
             WB_RD_out                   <= 32'b0; 

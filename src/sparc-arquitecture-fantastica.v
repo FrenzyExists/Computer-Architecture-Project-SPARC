@@ -15,8 +15,7 @@
 `include "src/data-memory.v"
 `include "src/npc-pc-handler.v"
 `include "src/output-handler.v"
-`include "src/hazard-forwading-unit.v"
- 
+`include "src/hazard-forwading-unit.v" 
 
 module sparc_fantastica;
     // Instruction Memory stuff
@@ -80,11 +79,17 @@ module sparc_fantastica;
     wire [4:0] DataMemInstructions;         // This goes on the Data Memory
     wire [2:0] OutputHandlerInstructions;   // This goes on the output handler
 
+    // 
+    wire [3:0] PSR_OUT;
+    wire [3:0] FLAGS;
+    wire [3:0] CC_COND;
+    wire [31:0] N;
+
 
     // Branch Instruction from CU
     wire ID_branch_instr;
     wire [18:0] CU_SIG; // Output instructions between CU and CU_MUX
-    reg S; // The signal that controls the CU_MUX
+    wire S; // The signal that controls the CU_MUX
 
     // These Go on all muxes that are connected to the register file
     // And come from different sections of the pipeline system
@@ -225,56 +230,78 @@ module sparc_fantastica;
 
     // Register File, saves operand and destiny registers
     register_file REG_FILE (
-        .PA(pa),
-        .PB(pb), 
-        .PD(pd), 
-        
-        .PW(WB_OUT),
-        .RW(RD_WB),
-        .RA(rs1),
-        .RB(rs2),
-        .RD(rd),
-        .LE(WB_Register_File_Enable),
-        .clk(clk)
+        .PA                             (pa),
+        .PB                             (pb),
+        .PD                             (pd),
+        .PW                             (WB_OUT),
+        .RW                             (RD_WB),
+        .RA                             (rs1),
+        .RB                             (rs2),
+        .RD                             (rd),
+        .LE                             (WB_Register_File_Enable),
+        .clk                            (clk)
     );
 
     // MUXES and Friends
-    mux_4x1 MX1(
-        .S (forwardMX1),
-        .I0(pa),
-        .I1(WB_OUT),
-        .I2(MEM_OUT),
-        .I3(ALU_OUT),
-        .Y (ID_MX1)
+    mux_4x1 MX1 (
+        .S                              (forwardMX1),
+        .I0                             (pa),
+        .I1                             (WB_OUT),
+        .I2                             (MEM_OUT),
+        .I3                             (ALU_OUT),
+        .Y                              (ID_MX1)
     );
 
-    mux_4x1 MX2(
-        .S (forwardMX2),
-        .I0(pb),
-        .I1(WB_OUT),
-        .I2(MEM_OUT),
-        .I3(ALU_OUT),
-        .Y (ID_MX2)
+    mux_4x1 MX2 (
+        .S                              (forwardMX2),
+        .I0                             (pb),
+        .I1                             (WB_OUT),
+        .I2                             (MEM_OUT),
+        .I3                             (ALU_OUT),
+        .Y                              (ID_MX2)
     );
 
-    mux_4x1 MX3(
-        .S (forwardMX3),
-        .I0(pd),
-        .I1(WB_OUT),
-        .I2(MEM_OUT),
-        .I3(ALU_OUT),
-        .Y (ID_MX3)
+    mux_4x1 MX3 (
+        .S                              (forwardMX3),
+        .I0                             (pd),
+        .I1                             (WB_OUT),
+        .I2                             (MEM_OUT),
+        .I3                             (ALU_OUT),
+        .Y                              (ID_MX3)
     );
-    // END OF MUXES AND DEATH :3
+    // ======================================== END OF MUXES AND DEATH :3
+
+    control_unit CU (
+        .clk                            (clk),
+        .clr                            (clr),
+        .instr                          (instruction_out),
+        .instr_signals                  (CU_SIG)
+    );
+
+    control_unit_mux CU_MUX (
+        .ID_branch_instr_out            (ID_branch_instr),
+        .CU_SIGNALS                      (ID_CU),
+
+        .S                              (S),
+        .cu_in_mux                      (CU_SIG)
+    );  
 
     // I am Voldemort :)
     pipeline_ID_EX ID_EX (
-         .PC                            (PC_ID),
-         .clk                           (clk),
-         .clr                           (clr),
-         .ID_control_unit_instr         (ID_CU),
-         .ID_RD_instr                   (RD_ID),
-         .Imm22                         (ID_Imm22),
+        .PC                             (PC_ID),
+        .clk                            (clk),
+        .clr                            (clr),
+        .ID_control_unit_instr          (ID_CU),
+        .ID_RD_instr                    (RD_ID),
+        .Imm22                          (ID_Imm22),
+
+        .ID_MX1                         (ID_MX1),
+        .ID_MX2                         (ID_MX2),
+        .ID_MX3                         (ID_MX3),
+        
+        .EX_MX1                         (EX_MX1),
+        .EX_MX2                         (EX_MX2),
+        .EX_MX3                         (EX_MX3),
 
         // OUTPUT
         .PC_EX                          (PC_EX),
@@ -286,21 +313,45 @@ module sparc_fantastica;
         .EX_Imm22                       (EX_Imm22)            
     );
 
-    control_unit CU (
-        .clk(clk),
-        .clr(clr),
-        .instr(instruction_out),
 
-        .instr_signals(CU_SIG)
+    source_operand SOURCE_OPERAND (
+        .R                              (EX_MX2),
+        .Imm                            (EX_Imm22),
+        .IS                             (IS),
+        .N                              (N)
     );
 
-    control_unit_mux CU_MUX (
-        .ID_branch_instr_out            (ID_branch_instr),
-        .CU_SIGNALS                      (ID_CU),
-
-        .S                              (S),
-        .cu_in_mux                      (CU_SIG)
+    alu ALU (
+        .a                              (EX_MX1),
+        .b                              (N),
+        .cin                            (CIN),
+        .opcode                         (ALU_OP),
+        .y                              (ALU_OUT),
+        .flags                          (FLAGS)
     );  
+
+    psr_register PSR (
+        .out                            (PSR_OUT),
+        .carry                          (CIN),
+        .flags                          (FLAGS),
+        .enable                         (CC_Enable),
+        .clr                            (clr),
+        .clk                            (clk)
+    );
+
+    mux_condtion MX4X1 (
+        .S                              (CC_Enable),
+        .I0                             (PSR_OUT),
+        .I1                             (FLAGS),
+        .Y                              (CC_COND)
+    );
+
+    condition_handler cond_H (
+        .flags                          (CC_COND),
+        .cond                           (cond),
+        .ID_branch_instr                (ID_branch_instr),
+        .branch_out                     (cond_branch_OUT)
+    );
 
     pipeline_EX_MEM EX_MEM (
         .clk                            (clk),
@@ -381,7 +432,7 @@ module sparc_fantastica;
         .PC_LE                          (PC_nPC_LE),
         .IF_ID_LE                       (IF_ID_LE),
         
-        .CU_S                           (),
+        .CU_S                           (S),
         
         .EX_Register_File_Enable        (EX_CU[3]),
         .MEM_Register_File_Enable       (MEM_CU),
@@ -396,7 +447,6 @@ module sparc_fantastica;
         .ID_rd                          (rd)
     );
 
-
     initial begin
         $dumpfile("gtk-wave-testers/sparc-fantastica.vcd"); // pass this to GTK Wave to visualize better wtf is going on
         $dumpvars(0, sparc_fantastica);
@@ -405,7 +455,6 @@ module sparc_fantastica;
         $finish;
     end 
 
- 
     always @(posedge clk, negedge clr) begin
         $display("TIME: %d", $time);
         $display(">>> IF Stage");
@@ -429,15 +478,8 @@ module sparc_fantastica;
     end
 
     initial begin
-        S = 1'b0;
-        #40;
-        S = 1'b1;
-    end
-
-    initial begin
         reset = 1;
         #3;
         reset = 0;
     end
 endmodule
-

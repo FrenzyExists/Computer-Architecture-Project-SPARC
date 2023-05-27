@@ -275,5 +275,8 @@ module phase3Tester;
         reset = 1;
         #3;
         reset = 0;
+        #30;
+        clr = 1;
+        reset = 1;
     end
 endmodule

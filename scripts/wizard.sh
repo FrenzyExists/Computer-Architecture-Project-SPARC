@@ -254,6 +254,60 @@ ${brown}  \\           / ${reset}
     done
 }
 
+doctor() {
+    if ! test -v iverilog ; then
+        echo "Icarus Verilog not found. Installing..."
+        printf "Attempting to install Icarus...\n"
+
+        # For Debian-based Systems
+        if  where apt-get &>/dev/null 2>&1; then
+            printf "Installing Icarus Verilog using apt-get"
+            sudo apt-get update
+            sudo apt-get install -y iverilog
+
+        # For Red Hat Systems
+        elif where yum &>/dev/null 2>&1; then
+            printf "Installing Icarus Verilog using yum\n"
+            sudo yum update
+            sudo yum install -y iverilog
+
+        # Check if the system is a macOS
+        elif [ "$(uname)" == "Darwin" ]; then
+            printf "Installing Icarus Verilog using Homebrew\n"
+            brew update
+            brew install icarus-verilog
+
+
+        else
+            printf "Couldn't find any package manager on this system. Attempting to use the git version...\n"
+
+            if  where git &>/dev/null 2>&1; then
+                temp_dir=$(mktemp -d)
+                conf_file="autoconf.sh"
+                conf_folder="configure"
+
+                trap 'rm -rf $temp_dir' EXIT
+
+                printf "Clonning...\n"
+                git clone https://github.com/steveicarus/iverilog.git "$temp_dir"
+                cd "$temp_dir" || exit 
+                bash "$conf_file"
+                cd "$conf_folder" || exit
+                make &
+
+                printf "Icarus got installed! Noice\n"
+            else
+                printf "Git is not installed, get git, fr\n"
+                exit 1
+            fi
+
+            printf "Error: Icarus Verilog is not installed and package manager not found\n"
+            exit 1
+        fi
+    fi
+}
+
+
 welcome() {
     boi="
 ${yellow} _____         _ _            _____           _         _   
@@ -278,7 +332,7 @@ Requires
 "
     tput civis # Hide the terminal cursor
 
-    options=("analize" "build" "LET ME OUT!!!")
+    options=("analize" "doctor" "build" "LET ME OUT!!!")
 
     # Get length of options array
     options_len=${#options[@]}
@@ -306,6 +360,9 @@ Requires
             "analize")
                 analize_plz
                 ;;
+            "doctor")
+                doctor
+                ;;
             "LET ME OUT!!!")
                 tput cnorm # Restore the terminal cursor
                 ;;
@@ -328,7 +385,9 @@ Requires
 
 # Check if Icarus Verilog is installed
 if ! command -v iverilog &>/dev/null 2>&1; then
-    printf "\nIcarus Verilog not found. You should run the script with the --doctor flag to get the prob fixed.\n"
+    printf "\nIcarus Verilog not found. You should run the script with the doctor to get the prob fixed.\n"
+    sleep 1
+    exit
 else
     welcome
 fi

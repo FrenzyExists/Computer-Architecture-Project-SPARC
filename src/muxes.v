@@ -18,10 +18,9 @@ module mux_2x1 (
     input S, 
     input[31: 0] I0, I1
 );
-
-always @ (S, I0, I1) 
-if (S) Y = I1; 
-else Y = I0; 
+    always @ (S, I0, I1) 
+    if (S) Y = I1; 
+    else Y = I0; 
 endmodule
 
 module mux_2x5 (
@@ -29,6 +28,17 @@ module mux_2x5 (
     input [4:0] I1,
     input S,
     output reg [4:0] Y
+);
+always @ (S, I0, I1) 
+    if (S) Y = I1; 
+    else Y = I0; 
+endmodule
+
+module mux_condtion (
+    input [3:0] I0, 
+    input [3:0] I1,
+    input        S,
+    output reg [3:0] Y
 );
 always @ (S, I0, I1) 
     if (S) Y = I1; 

@@ -1,8 +1,8 @@
 /**************************************************************
- * Module: PSR_register
+ * Module: psr_register
  **************************************************************
  * Description:
- *   The PSR_register module represents a Processor Status Register
+ *   The psr_register module represents a Processor Status Register
  *   register that holds condition flags and a carry flag. It provides
  *   an output for the condition flags and the carry flag based on
  *   the inputs.
@@ -18,13 +18,13 @@
  *   - carry: Output carry flag
  * 
  ***************************************************************/
-module PSR_register (
+module psr_register (
     output reg [3:0] out,
     output reg carry,
     input wire [3:0] flags, 
     input wire enable, clr, clk
 );
-always @ (posedge clk, negedge clr)
+always @ (posedge clk)
 	if (clr) out <= 4'b000;
 	else if (enable) begin
         out <= flags;

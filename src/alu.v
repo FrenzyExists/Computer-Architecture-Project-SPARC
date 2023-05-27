@@ -82,7 +82,7 @@ module alu (
     * C -> Carry
     * V -> Overflow
     */
-    always @(opcode, a, b, cin) begin
+    always @(*) begin
         case (opcode)
             4'b0000: begin
                 {carry, y} = a + b; // Add => A + B
