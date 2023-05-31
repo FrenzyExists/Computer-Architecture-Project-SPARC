@@ -77,32 +77,33 @@ module phase3Tester;
 
     wire WB_Register_File_Enable;
 
-    // These are more for phase 4
-    reg [1:0] PC_MUX = 2'b00;
-    reg [31:0] TA;
-    reg [31:0] ALU_OUT;
-
     // Branch Instruction from CU
     wire ID_branch_instr;
     wire [18:0] CU_SIG; // Output instructions between CU and CU_MUX
     reg S; // The signal that controls the CU_MUX
 
+    wire [31:0] nPC4;
+
     // Lil module that always adds 4 to the PC
     PC_adder adder (
-        .PC_in(PC),
-        .PC_out(nPC)
+        .PC_in(nPC),
+        .PC_out(nPC4) // nPC + 4
     );
 
-    // Initialize the nPC/PC Handler Logic Box
-    PC_nPC_Register PC_reg (
-        .clk        (clk),
-        .clr        (clr),
-        .LE         (LE),
-        .nPC        (nPC),
-        .ALU_OUT    (ALU_OUT),
-        .TA         (TA),
-        .mux_select (PC_MUX),
-        .OUT        (PC)
+    nPC_Reg nPC_Reg ( 
+        .Q      (nPC), // Out
+        .LE     (LE), 
+        .clk    (clk), 
+        .clr    (clr),
+        .D      (nPC4) // In
+    );
+
+    PC_Reg PC_Reg ( 
+        .Q      (PC), // Out
+        .LE     (LE), 
+        .clk    (clk), 
+        .clr    (clr),
+        .D      (nPC)  // In
     );
 
     // Instruction Memory
@@ -233,6 +234,7 @@ module phase3Tester;
 
     initial  begin
         $monitor("\n\n\nTIME: %d | S: %b\n---------------------------------\
+        \nPC: %d | nPC: %d\n--------------------------------------\
         \nInstruction at Decode Stage: %b | Signals at Decode Stage:\
         \n--------------------------------------------------\
         \nPC in ID stage: %d | jmpl: %b | call: %b | load: %b | Register File Enable: %b | Data MEM SE: %b | Data MEM R/W: %b | Data MEM Enable: %b\
@@ -249,6 +251,9 @@ module phase3Tester;
         \n--------------------------------------------------\
         \nRegister File Enable: %b",
         $time, S,
+        
+        PC, nPC,
+
         instruction_out, 
 
         PC_ID, ID_CU[0], ID_CU[1], ID_CU[2], ID_CU[3], ID_CU[4], ID_CU[5], ID_CU[6],

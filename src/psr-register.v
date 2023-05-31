@@ -22,11 +22,10 @@ module psr_register (
     output reg [3:0] out,
     output reg carry,
     input wire [3:0] flags, 
-    input wire enable, clr, clk
+    input wire enable, clk
 );
 always @ (posedge clk)
-	if (clr) out <= 4'b000;
-	else if (enable) begin
+    if (enable) begin
         out <= flags;
         carry <= flags[2];
     end

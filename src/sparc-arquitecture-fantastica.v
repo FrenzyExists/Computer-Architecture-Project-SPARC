@@ -74,6 +74,8 @@ module sparc_fantastica;
     wire [4:0] RD_EX;
     wire [4:0] RD_MEM;
     wire [4:0] RD_WB;
+    
+    wire [31:0] WB_RD_BACK;
 
     // MEM pipeline output
     wire [4:0] DataMemInstructions;         // This goes on the Data Memory
@@ -84,7 +86,6 @@ module sparc_fantastica;
     wire [3:0] FLAGS;
     wire [3:0] CC_COND;
     wire [31:0] N;
-
 
     // Branch Instruction from CU
     wire ID_branch_instr;
@@ -118,12 +119,7 @@ module sparc_fantastica;
     wire [2:0] MEM_Output_Handler; // These are jmpl|call|load form MEM stage 
     // These go into the Data Memory, the thing that makes
     // MEM stage a MEM stage
-    wire [4:0] MEM_Data_Memory; // These are SE|R/W|Enable|Size
-    
-
-    /////////////////////////////// No idea what to do with these
-    wire [31:0] OutputMUX;
-    wire [31:0] WB_RD_BACK;
+    wire [4:0] MEM_Data_Memory; // These are SE|R/W|Enable|Size    
     
     wire WB_Register_File_Enable;
     ///////////////////////////////
@@ -133,14 +129,15 @@ module sparc_fantastica;
     wire [31:0] pb;
     wire [31:0] pd;
 
+    wire [31:0] ID_MX1;
+    wire [31:0] EX_MX1;
+    wire [31:0] ID_MX2;
+    wire [31:0] EX_MX2;
+    wire [31:0] ID_MX3;
+    wire [31:0] EX_MX3;
 
-   wire [31:0] ID_MX1;
-   wire [31:0] EX_MX1;
-   wire [31:0] ID_MX2;
-   wire [31:0] EX_MX2;
-   wire [31:0] ID_MX3;
-   wire [31:0] EX_MX3;
-
+    wire [31:0] nPC4;
+    wire [31:0] PCMUX_OUT;
 
     npc_pc_handler pc_npc_H (
         .branch_out               (cond_branch_OUT),
@@ -151,21 +148,34 @@ module sparc_fantastica;
 
     // Lil module that always adds 4 to the PC
     PC_adder adder (
-        .PC_in(PC),
-        .PC_out(nPC)
+        .PC_in(PCMUX_OUT),
+        .PC_out(nPC4) // nPC + 4
     );
 
-    // Initialize the nPC/PC Handler Logic Box
-    PC_nPC_Register PC_reg (
-        .clk        (clk),
-        .clr        (clr),
-        .LE         (PC_nPC_LE),
-        .nPC        (nPC),
-        .ALU_OUT    (ALU_OUT),
-        .TA         (TA),
-        .mux_select (forwardPC),
-        .OUT        (PC)
+    nPC_Reg nPC_Reg ( 
+        .Q      (nPC), // Out
+        .LE     (PC_nPC_LE), 
+        .clk    (clk), 
+        .clr    (clr),
+        .D      (nPC4) // In
     );
+
+    PC_MUX PCMUX(
+    .nPC        (nPC),
+    .ALU_OUT    (ALU_OUT),
+    .TA         (TA),
+    .select     (forwardPC),
+    .Q          (PCMUX_OUT)
+    );
+
+    PC_Reg PC_Reg ( 
+        .Q      (PC), // Out
+        .LE     (PC_nPC_LE), 
+        .clk    (clk), 
+        .clr    (clr),
+        .D      (PCMUX_OUT)  // In
+    );
+
 
     // Instruction Memory
     rom_512x8 rom (
@@ -335,7 +345,6 @@ module sparc_fantastica;
         .carry                          (CIN),
         .flags                          (FLAGS),
         .enable                         (CC_Enable),
-        .clr                            (clr),
         .clk                            (clk)
     );
 
@@ -369,14 +378,13 @@ module sparc_fantastica;
 
     // Data Memory
     ram_512x8 ram (
-        .DataOut      (DataMemory_OUT),
-
-        .SignExtend   (MEM_Output_Handler[0]),   
-        .ReadWrite    (MEM_Output_Handler[1]),      
-        .Enable       (MEM_Output_Handler[2]), 
-        .Size         (MEM_Output_Handler[4:3]),
-        .Address      (MEM_ALU_OUT_Address[7:0]),
-        .DataIn       (MEM_Data_IN_PD)
+        .DataOut                        (DataMemory_OUT),
+        .SignExtend                     (MEM_Output_Handler[0]),   
+        .ReadWrite                      (MEM_Output_Handler[1]),      
+        .Enable                         (MEM_Output_Handler[2]), 
+        .Size                           (MEM_Output_Handler[4:3]),
+        .Address                        (MEM_ALU_OUT_Address[7:0]),
+        .DataIn                         (MEM_Data_IN_PD)
     );
 
    // Precharging Data Memory
@@ -385,7 +393,7 @@ module sparc_fantastica;
         Addr = 8'b00000000;
         // $display("Precharging Data Memory...\n---------------------------------------------\n");
         while (!$feof(fi)) begin
-            if (Addr % 4 == 0 && !$feof(fi)) $display("\nPrecharging Next Instruction...\n---------------------------------------------");
+            // if (Addr % 4 == 0 && !$feof(fi)) $display("\nPrecharging Next Instruction...\n---------------------------------------------");
             code = $fscanf(fi, "%b", data);
             // $display("Address = %d  code = %b, time=%d", Addr, data, $time);
             ram.Mem[Addr] = data;
@@ -455,26 +463,48 @@ module sparc_fantastica;
         $finish;
     end 
 
-    always @(posedge clk, negedge clr) begin
-        $display("TIME: %d", $time);
-        $display(">>> IF Stage");
-        $display("-------------------> Entering Instruction: %b | clk: %b | clr: %b | PC: %d | nPC: %d", instruction, clk, clr, PC, nPC);
-        $display(">>> Control Unit");
-        $display("-------------------> call: %b | jmpl: %b | load: %b | Register File Enable: %b | Data MEM SE: %b | Data MEM R/W: %b | Data MEM Enable: %b", CU_SIG[0], CU_SIG[1], CU_SIG[2], CU_SIG[3], CU_SIG[4], CU_SIG[5], CU_SIG[6]);
-        $display("                     Data MEM Size: %b | Condition Code Enable: %b | I31: %b | I30: %b | I24: %b | I13: %b | Alu Opcode: %b | Branch Instruction: %b", CU_SIG[8:7], CU_SIG[9], CU_SIG[10], CU_SIG[11], CU_SIG[12], CU_SIG[13], CU_SIG[17:14], CU_SIG[18]);
-        $display(">>> ID Stage");
-        $display("-------------------> Current Instruction: %b | Imm22: %b | Rs1: %b | Rs2: %b | Rd: %b | branch cond instruction: %b | RD: %b | PC: %d", instruction_out, ID_Imm22, rs1, rs2, rd, I29_branch_instr, RD_ID, PC_ID);
-        $display("                     call: %b | jmpl: %b | load: %b | Register File Enable: %b | Data MEM SE: %b | Data MEM R/W: %b | Data MEM Enable: %b", ID_CU[0], ID_CU[1], ID_CU[2], ID_CU[3], ID_CU[4], ID_CU[5], ID_CU[6]);
-        $display("                     Data MEM Size: %b | Condition Code Enable: %b | I31: %b | I30: %b | I24: %b | I13: %b | Alu Opcode: %b | Branch Instruction: %b", ID_CU[8:7], ID_CU[9], ID_CU[10], ID_CU[11], ID_CU[12], ID_CU[13], ID_CU[17:14], ID_CU[18]);        
+    initial begin
+        $monitor("\n\
+        \nTIME: %d | S: %b\n---------------------------------\
+        \n»»» Instruction at Fetch Stage: %b | clk: %d | clr: %d | reset: %b\
+        \n    nPC: %d | PC: %d\n---------------------------------\
+        \n»»» Instruction at Decode Stage: %b | Signals:\
+        \n    » Signals at Control Unit:\
+        \n      jmpl: %b | call: %b | load: %b | Reg Enable: %b | Data MEM SE: %b | Data MEM R/W: %b | Data MEM E: %b\
+        \n      Data MEM Size: %b | Cond Code Enable: %b | I31: %b | I30: %b | I24: %b | I13: %b | Alu Opcode: %b | Branch Instruction: %b\
+        \n    » Signals at the Decode:\
+        \n      jmpl: %b | call: %b | load: %b | Reg Enable: %b | Data MEM SE: %b | Data MEM R/W: %b | Data MEM E: %b\
+        \n      Data MEM Size: %b | Cond Code Enable: %b | I31: %b | I30: %b | I24: %b | I13: %b | Alu Opcode: %b | Branch Instruction: %b\
+        \n    » Signals around Register File:\
+        \n      RA: %b | RB: %b | RD: %b | RW: %b\
+        \n      LE: %b | PW: %b | PA: %b | PB: %b | PD: %b\
+        ",
+        $time, S,
+        instruction_out, clk, clr, reset,
+
+        nPC, PC,
+
+        CU_SIG[0], CU_SIG[1], CU_SIG[2], CU_SIG[3], CU_SIG[4], CU_SIG[5], CU_SIG[6],
+        CU_SIG[8:7], CU_SIG[9], CU_SIG[10], CU_SIG[11], CU_SIG[12], CU_SIG[13], CU_SIG[17:14], CU_SIG[18],
+
+        PC_ID, ID_CU[0], ID_CU[1], ID_CU[2], ID_CU[3], ID_CU[4], ID_CU[5], ID_CU[6],
+        ID_CU[8:7], ID_CU[9], ID_CU[10], ID_CU[11], ID_CU[12], ID_CU[13], ID_CU[17:14], ID_branch_instr,
+
+        rs1, rs2, rd, RD_WB,
+        WB_Register_File_Enable, WB_OUT, pa, pb, pd
+
+
+        // PC_EX, EX_CU[0], EX_CU[1], EX_CU[2], EX_CU[3], EX_CU[4], EX_CU[5], EX_CU[6],
+        // EX_CU[8:7], CC_Enable, IS[0], IS[1], IS[2], IS[3], PSR_OUT, cond_branch_OUT,
         
-        $display(">>> EX Stage");
-        $display("-------------------> ALU Opcode: %b | Source Operand Handler Is: %b | Imm22: %b | Condition Code Enable: %b | RD: %b | PC: %d", ALU_OP, IS, EX_Imm22, CC_Enable, RD_EX, PC_EX);
-        $display("                     call: %b | jmpl: %b | load: %b | Register File Enable: %b | Data MEM SE: %b | Data MEM R/W: %b | Data MEM Enable: %b", EX_CU[0], EX_CU[1], EX_CU[2], EX_CU[3], EX_CU[4], EX_CU[5], ID_CU[6]);
-        $display("                     Data Mem Size: %b", EX_CU[8:7]);
-        $display(">>> MEM Stage");
-        $display("-------------------> Data MEM SE: %b | Data MEM R/W: %b | Data MEM Enable: %b | Data MEM Size: %b | jmpl: %b | call: %b | load: %b | register file enable: %b | RD: %b | PC: %d", DataMemInstructions[0], DataMemInstructions[1], DataMemInstructions[2], DataMemInstructions[4:3], OutputHandlerInstructions[0], OutputHandlerInstructions[1], OutputHandlerInstructions[2], MEM_CU, RD_MEM, PC_MEM);
-        $display(">>> WB Stage");
-        $display("-------------------> Data MEM Output: %b | Register File Enable: %b | RD: %b", WB_Register_File_Enable, WB_Register_File_Enable, WB_RD_BACK);
+        // EX_MX2, EX_Imm22, IS,
+
+        // EX_MX1, N, CIN, FLAGS, ALU_OP
+
+        // PC_MEM, OutputHandlerInstructions[0], OutputHandlerInstructions[1], OutputHandlerInstructions[2], MEM_CU, DataMemInstructions[0], DataMemInstructions[1], DataMemInstructions[2], 
+        // DataMemInstructions[4:3], MEM_Data_IN_PD, DataMemory_OUT
+
+        );
     end
 
     initial begin

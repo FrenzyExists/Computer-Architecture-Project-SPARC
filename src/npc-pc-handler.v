@@ -117,6 +117,49 @@ endmodule
  *     .OUT(PC_out)
  *   );
  */
+
+ // ===============================
+module PC_Reg(
+    output reg [31:0] Q,
+    input LE, clk, clr,
+    input [31:0] D
+);
+    always @ (posedge clk) 
+        if (clr) Q <= 32'b0;
+        else if (LE) Q <= D;
+endmodule
+
+module nPC_Reg(
+    output reg [31:0] Q,
+    input LE, clk, clr,
+    input [31:0] D
+);
+    always @ (posedge clk) 
+        if (clr) Q <= 32'd4;
+        else if (LE) Q <= D;
+endmodule
+
+module PC_MUX(
+    input [31:0] ALU_OUT,
+    input [31:0] TA,
+    input [31:0] nPC,
+    input [1:0] select,
+    output reg [31:0] Q
+);
+
+    always @(*) begin
+        case (select)
+            2'b00: Q <= nPC;
+            2'b01: Q <= TA;
+            2'b10: Q <= ALU_OUT;
+            default: Q <= Q;
+        endcase
+    end
+endmodule
+// =============================
+
+
+// Old
 module PC_nPC_Register(
     input                clk,
     input                clr,
@@ -128,7 +171,7 @@ module PC_nPC_Register(
     output reg [31:0]    OUT
     );
 
-    always @ (posedge clk, posedge clr) begin
+    always @ (posedge clk) begin
         if(clr) begin
             OUT <= 32'b0;
         end else if (LE) begin
