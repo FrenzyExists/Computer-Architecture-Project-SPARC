@@ -36,13 +36,16 @@ For this phase we made small mistakes that if it wasn't for GTK-Wave, we could'v
 
 It is important to first download Icarus Verilog for windows machines to either get Git Bash or WSL in order to execute bash scripts.
 
-After installing the necessary programs, clone this project and navigate to project/scripts and execute the build.sh script. This will build all the design components in a build folder located in the project folder. navigate to the build folder and in a terminal pointed at this directory type:
+After installing the necessary programs, clone this project and navigate to project/scripts and execute the `wizard.sh` script. This will build all the design components in a build folder located in the project folder. navigate to the build folder and in a terminal pointed at this directory type:
 
-```
+
+```bash
 ./<build-file>
 ```
 
-This should execute the test file as well as the component that is being tested
+You'll get something like this:
+
+![image](https://github.com/FrenzyExists/Computer-Architecture-Project-SPARC/assets/47986470/002815dc-be35-4274-b0a4-8a0d033c21f4)
 
 ## Design
 
