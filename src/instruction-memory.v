@@ -26,6 +26,6 @@
  */
 module rom_512x8 (output reg [31:0] DataOut, input [7:0] Address);
     reg [7:0] Mem[0:511];       //512 8bit locations
-    always@(Address)            //Loop when Address changes
+    always@*            //Loop when Address changes
         DataOut = {Mem[Address], Mem[Address+1], Mem[Address+2], Mem[Address+3]};
 endmodule

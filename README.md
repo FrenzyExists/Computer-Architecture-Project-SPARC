@@ -45,7 +45,7 @@ After installing the necessary programs, clone this project and navigate to proj
 
 You'll get something like this:
 
-![image](https://github.com/FrenzyExists/Computer-Architecture-Project-SPARC/assets/47986470/002815dc-be35-4274-b0a4-8a0d033c21f4)
+![image](./assets/bash-prompt.png)
 
 ## Design
 

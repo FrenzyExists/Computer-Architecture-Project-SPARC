@@ -1,0 +1,100 @@
+$date
+	Thu Jun  1 10:14:39 2023
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module npc_pc_handler_tester $end
+$var wire 32 ! PC_4 [31:0] $end
+$var wire 32 " nPC [31:0] $end
+$var wire 32 # PC [31:0] $end
+$var reg 32 $ ALU_OUT [31:0] $end
+$var reg 1 % LE $end
+$var reg 2 & PC_MUX [1:0] $end
+$var reg 32 ' TA [31:0] $end
+$var reg 1 ( clk $end
+$var reg 1 ) clr $end
+$scope module PC_reg $end
+$var wire 32 * ALU_OUT [31:0] $end
+$var wire 1 % LE $end
+$var wire 32 + TA [31:0] $end
+$var wire 1 ( clk $end
+$var wire 1 ) clr $end
+$var wire 2 , mux_select [1:0] $end
+$var wire 32 - nPC [31:0] $end
+$var reg 32 . OUT [31:0] $end
+$upscope $end
+$scope module adder $end
+$var wire 32 / PC_in [31:0] $end
+$var reg 32 0 PC_out [31:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+bx 0
+bx /
+bx .
+bx -
+b0 ,
+bx +
+bx *
+1)
+0(
+bx '
+b0 &
+1%
+bx $
+bx #
+bx "
+bz !
+$end
+#2
+b100 "
+b100 -
+b100 0
+b0 #
+b0 .
+b0 /
+1(
+#4
+0)
+0(
+#6
+b1000 "
+b1000 -
+b1000 0
+b100 #
+b100 .
+b100 /
+1(
+#8
+0(
+0%
+#10
+1(
+#12
+0(
+#14
+1(
+#16
+0(
+#18
+1(
+#20
+0(
+#22
+1(
+#24
+0(
+#26
+1(
+#28
+0(
+#52

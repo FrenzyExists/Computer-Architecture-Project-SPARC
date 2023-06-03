@@ -71,10 +71,10 @@ module register_file (output [31:0] PA, PB, PD, input [31:0] PW,  input [4:0] RW
     register_32bit R30 (Q30, PW, clk, E[30]);
     register_32bit R31 (Q31, PW, clk, E[31]);
 
-    always @(*) begin
-
-        $display("LE: %b  | PA: %b", LE, PA);
-    end
+    // Uncomment for testing, else don't touch or it won't synthetize
+    // always @(*) begin
+    //     $display("LE: %b  | PA: %b", LE, PA);
+    // end
 
 endmodule
 

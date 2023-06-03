@@ -1,0 +1,46 @@
+$date
+	Thu Jun  1 09:56:40 2023
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module reset_handler_test $end
+$var wire 1 ! reset_out $end
+$var reg 1 " ID_branch_instr $end
+$var reg 1 # a $end
+$var reg 1 $ system_reset $end
+$scope module reset_handler_inst $end
+$var wire 1 " ID_branch_instr $end
+$var wire 1 # a $end
+$var wire 1 $ system_reset $end
+$var reg 1 ! reset_out $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+1$
+0#
+0"
+1!
+$end
+#1000
+0!
+1"
+0$
+#2000
+1!
+1#
+1$
+#3000
+0"
+0$
+#4000
+0#
+#5000

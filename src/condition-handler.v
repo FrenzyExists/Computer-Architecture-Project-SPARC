@@ -22,7 +22,7 @@ always @(flags) begin
     V <= flags[3];
 end
 
-always @(flags, cond, ID_branch_instr) begin
+always @* begin
     if (ID_branch_instr) begin
         case (cond)
             4'b0000: branch_out = ID_branch_instr; // Branch Never

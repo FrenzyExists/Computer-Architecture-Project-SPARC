@@ -26,7 +26,8 @@ module reset_handler(
     output reg reset_out // The thing that triggers reset
 );
 
-    always @(posedge system_reset, posedge ID_branch_instr) begin
+    // always @(posedge system_reset, posedge ID_branch_instr) begin
+        always @* begin
         if (system_reset || (ID_branch_instr && a)) begin
             reset_out <= 1'b1;
         end else begin

@@ -71,10 +71,10 @@ module alu (
     
     reg [32:0] carry;
 
-    reg Z;
-    reg N;
-    reg C;
-    reg V;
+    // reg Z;
+    // reg N;
+    // reg C;
+    // reg V;
     
     /* Explanation:
     * Z -> If Outout was 0 or not
@@ -82,108 +82,113 @@ module alu (
     * C -> Carry
     * V -> Overflow
     */
-    always @(*) begin
-        case (opcode)
+    always @* begin
+        case (opcode)   // Flag order: Z N C V
             4'b0000: begin
                 {carry, y} = a + b; // Add => A + B
-                // y = carry;
-                // y = a + b; // Add => A + B
-                // Flag order: Z N C V
-                
-                Z = (y == 32'b0) ? 1:0;
-                N = (y[31] == 1'b1) ? 1:0;
-                C = carry[0];
-                V = (~a[31] && ~b[31] && y[31]) | (a[31] && b[31] && ~y[31]);
-                flags = {Z, N, C, V};          
+
+                // Z = (y == 32'b0) ? 1:0;
+                // N = (y[31] == 1'b1) ? 1:0;
+                // C = carry[0];
+                // V = (~a[31] && ~b[31] && y[31]) | (a[31] && b[31] && ~y[31]);
+                // flags = {Z, N, C, V};
+                flags = {y == 32'b0, y[31], carry[0], ((~a[31] && ~b[31] && y[31]) | (a[31] && b[31] && ~y[31]))};
             end
             4'b0001: begin
-        
                 {carry, y} = a + b + cin; // Add with carry => A + B + cin
 
-                Z = (y == 32'b0) ? 1:0;
-                N = (y[31] == 1'b1) ? 1:0;
-                C = carry[32];
-                V = (~a[31] && ~b[31] && y[31]) | (a[31] && b[31] && ~y[31]);
-                flags = {Z, N, C, V};
+                // Z = (y == 32'b0) ? 1:0;
+                // N = (y[31] == 1'b1) ? 1:0;
+                // C = carry[32];
+                // V = (~a[31] && ~b[31] && y[31]) | (a[31] && b[31] && ~y[31]);
+                // flags = {Z, N, C, V};
+                flags = {y == 32'b0, y[31], carry[0], ((~a[31] && ~b[31] && y[31]) | (a[31] && b[31] && ~y[31]))};
             end
             4'b0010: begin
                 {carry, y} = a - b;
 
-                Z = (y == 32'b0) ? 1:0;
-                N = (y[31] == 1'b1) ? 1:0;
-                C = carry[32];
-                V = ({carry, y[31]} == 2'b01);
-                flags = {Z, N, C, V};  
+                // Z = (y == 32'b0) ? 1:0;
+                // N = (y[31] == 1'b1) ? 1:0;
+                // C = carry[32];
+                // V = ({carry, y[31]} == 2'b01);
+                // flags = {Z, N, C, V};  
+                flags = {y == 32'b0, y[31] == 1'b1, carry[32], ({carry, y[31]} == 2'b01)};
             end
             4'b0011: begin 
                 {carry, y} = a - b - cin;
 
-                Z = (y == 32'b0) ? 1:0;
-                N = (y[31] == 1'b1) ? 1:0;
-                C = carry[32];
-                V = ({carry, y[31]} == 2'b01);
-                flags = {Z, N, C, V};
+                // Z = (y == 32'b0) ? 1:0;
+                // N = (y[31] == 1'b1) ? 1:0;
+                // C = carry[32];
+                // V = ({carry, y[31]} == 2'b01);
+                // flags = {Z, N, C, V};
+                flags = {y == 32'b0, y[31] == 1'b1, carry[32], ({carry, y[31]} == 2'b01)};
             end
             4'b0100: begin
                 {carry, y} = a && b;
 
-                Z = (y == 32'b0) ? 1:0;
-                N = (y[31] == 1'b1) ? 1:0;
-                C = 1'b0;
-                V = 1'b0;
-                flags = {Z, N, C, V};
+                // Z = (y == 32'b0) ? 1:0;
+                // N = (y[31] == 1'b1) ? 1:0;
+                // C = 1'b0;
+                // V = 1'b0;
+                // flags = {Z, N, C, V};
+                flags = {y == 32'b0, y[31] == 1'b1, 1'b0, 1'b0};
             end
             4'b0101: begin
                 {carry, y} = a | b;
 
-                Z = (y == 32'b0) ? 1:0;
-                N = (y[31] == 1'b1) ? 1:0;
-                C = 1'b0;
-                V = 1'b0;
-                flags = {Z, N, C, V};
+                // Z = (y == 32'b0) ? 1:0;
+                // N = (y[31] == 1'b1) ? 1:0;
+                // C = 1'b0;
+                // V = 1'b0;
+                // flags = {Z, N, C, V};
+                flags = {y == 32'b0, y[31] == 1'b1, 1'b0, 1'b0};
             end
             4'b0110: begin
-                y = a ^ b;
+                {carry, y} = a ^ b;
 
-                Z = (y == 32'b0) ? 1:0;
-                N = (y[31] == 1'b1) ? 1:0;
-                C = 1'b0;
-                V = 1'b0;
-                flags = {Z, N, C, V};
+                // Z = (y == 32'b0) ? 1:0;
+                // N = (y[31] == 1'b1) ? 1:0;
+                // C = 1'b0;
+                // V = 1'b0;
+                // flags = {Z, N, C, V};
+                flags = {y == 32'b0, y[31] == 1'b1, 1'b0, 1'b0};
             end
             4'b0111: begin
-                y = ~(a ^ b);
+                {carry, y} = ~(a ^ b);
 
-                Z = (y == 32'b0) ? 1:0;
-                N = (y[31] == 1'b1) ? 1:0;
-                C = 1'b0;
-                V = 1'b0;
-                flags = {Z, N, C, V};
+                // Z = (y == 32'b0) ? 1:0;
+                // N = (y[31] == 1'b1) ? 1:0;
+                // C = 1'b0;
+                // V = 1'b0;
+                // flags = {Z, N, C, V};
             end
             4'b1000: begin
-                y = a && ~b;
+                {carry, y} = a && ~b;
 
-                Z = (y == 32'b0) ? 1:0;
-                N = (y[31] == 1'b1) ? 1:0;
-                C = 1'b0;
-                V = 1'b0;
-                flags = {Z, N, C, V};
+                // Z = (y == 32'b0) ? 1:0;
+                // N = (y[31] == 1'b1) ? 1:0;
+                // C = 1'b0;
+                // V = 1'b0;
+                // flags = {Z, N, C, V};
+                flags = {y == 32'b0, y[31] == 1'b1, 1'b0, 1'b0};
             end
             4'b1001: begin
-                y = a ^ ~b;
+                {carry, y} = a ^ ~b;
                 
-                Z = (y == 32'b0) ? 1:0;
-                N = (y[31] == 1'b1) ? 1:0;
-                C = 1'b0;
-                V = 1'b0;
-                flags = {Z, N, C, V};
+                // Z = (y == 32'b0) ? 1:0;
+                // N = (y[31] == 1'b1) ? 1:0;
+                // C = 1'b0;
+                // V = 1'b0;
+                // flags = {Z, N, C, V};
+                flags = {y == 32'b0, y[31] == 1'b1, 1'b0, 1'b0};
             end
-            4'b1010: y = a << b;
-            4'b1011: y = a >> b;
-            4'b1100: y = $signed(a) >>> b[4:0];
-            4'b1101: y = a;
-            4'b1110: y = b;
-            4'b1111: y = ~b;
+            4'b1010: {carry, y} = a << b;
+            4'b1011: {carry, y} = a >> b;
+            4'b1100: {carry, y} = $signed(a) >>> b[4:0];
+            4'b1101: {carry, y} = a;
+            4'b1110: {carry, y} = b;
+            4'b1111: {carry, y} = ~b;
         endcase
     end
 endmodule
