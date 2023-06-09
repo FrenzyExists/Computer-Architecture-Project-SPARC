@@ -38,7 +38,7 @@
 * generating the next PC value for the processor. 
 *
 */
-module npc_pc_handler (
+module nPC_PC_Handler (
     input branch_out,
     input ID_jmpl_instr,
     input ID_call_instr,

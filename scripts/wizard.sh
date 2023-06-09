@@ -216,7 +216,6 @@ execute_file() {
 }
 
 execute_specific() {
-  # printf "Do you want to check if the file \nis synthesizable? (y/n) " && read -r answer
   process_files "$build_dir" "execute_file"
 }
 
@@ -237,7 +236,7 @@ execute_all() {
   # Check if ps2pdf and enscript are installed
   local to_pdf=1
   if ! command -v ps2pdf &>/dev/null || ! command -v enscript &>/dev/null; then
-    printf "Error: ps2pdf or enscript is not installed.\nFiles will be .txt instead.\n"
+    printf "Warning: ps2pdf or enscript is not installed.\nFiles will be .txt instead.\n"
     to_pdf=0
   fi
 
@@ -420,8 +419,8 @@ Requires
   ${cyan}»» ${description}${reset}
 "
 
-  functions=("analize" "doctor" "execute" "build")
-  options=("Analize Hardware Designs" "Call the Doctor" "Execute Compilled Designs" "Compile Hardware Designs")
+  functions=("analize" "doctor" "execute" "build" "cocotb")
+  options=("Analize Hardware Designs" "Call the Doctor" "Execute Compilled Designs" "Compile Hardware Designs" "Run Cocotb Testbench")
   select_options options functions
 }
 
@@ -467,10 +466,15 @@ select_options() {
           tput cnorm # Restore the terminal cursor
           exit 0
         else
-          push_menu "$selected_func"
-          func_name=${selected_func%% *}
-          func_args=${selected_func#* }
-          "$func_name" "$func_args"
+          if [[ $(type -t foo) == function ]] ; then
+            printf "Function is not implemented, wait for next update!\n"
+            sleep 1
+          else
+            push_menu "$selected_func"
+            func_name=${selected_func%% *}
+            func_args=${selected_func#* }
+            "$func_name" "$func_args"
+          fi
         fi
       fi
     fi

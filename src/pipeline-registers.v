@@ -293,7 +293,7 @@ module pipeline_MEM_WB (
             WB_RD_out                   <= 32'b0; 
             WB_Register_File_Enable     <= 1'b0;
         end else begin 
-            WB_RD_instr                 <= WB_RD_instr;
+            WB_RD_instr                 <= MEM_RD_instr;
             WB_RD_out                   <= MUX_out;
             WB_Register_File_Enable     <= MEM_control_unit_instr;
         end
