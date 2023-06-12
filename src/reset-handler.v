@@ -23,6 +23,7 @@ module reset_handler(
     input system_reset,
     input ID_branch_instr,
     input a, // I29 instruction
+    input condition_handler_instr,
     output reg reset_out // The thing that triggers reset
 );
 

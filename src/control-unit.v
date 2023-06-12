@@ -38,19 +38,19 @@
 */
 module control_unit_mux(
     output reg ID_branch_instr_out,            // 3
-    output reg [17:0] CU_SIGNALS,          // 15,16,17,18
+    output reg [18:0] CU_SIGNALS,          // 15,16,17,18
 
     input S,
-    input [18:0] cu_in_mux
+    input [19:0] cu_in_mux
     );
 
     always  @(S, cu_in_mux) begin
         if (S == 1'b0) begin
-            ID_branch_instr_out         <= cu_in_mux[18];
-            CU_SIGNALS                  <= cu_in_mux[17:0];
+            ID_branch_instr_out         <= cu_in_mux[19];
+            CU_SIGNALS                  <= cu_in_mux[18:0];
         end else begin
             ID_branch_instr_out         <= 1'b0;
-            CU_SIGNALS                  <= 18'b0;
+            CU_SIGNALS                  <= 19'b0;
         end
     end
 endmodule
@@ -183,23 +183,24 @@ endmodule
 module control_unit(
     input wire[31:0] instr,
     input clk, clr, // clock and clear
-    output wire [18:0] instr_signals
+    output wire [19:0] instr_signals
 );
     reg ID_jmpl_instr;              // 1
     reg ID_call_instr;              // 2
-    reg ID_branch_instr;            // 3
-    reg ID_load_instr;              // 4
+    reg ID_load_instr;              // 3
+    reg ID_store_instr;             // 4
     reg ID_register_file_Enable;    // 5
     reg ID_data_mem_SE;             // 6
     reg ID_data_mem_RW;             // 7
     reg ID_data_mem_Enable;         // 8
     reg [1:0] ID_data_mem_Size;     // 9,10
-    reg I31;                        // 11
-    reg I30;                        // 12
-    reg I24;                        // 13
-    reg I13;                        // 14
-    reg [3:0] ID_ALU_OP_instr;      // 15,16,17,18
-    reg CC_Enable;                  // 19
+    reg CC_Enable;                  // 11
+    reg I31;                        // 12
+    reg I30;                        // 13
+    reg I24;                        // 14
+    reg I13;                        // 15
+    reg [3:0] ID_ALU_OP_instr;      // 16,17,18,19
+    reg ID_branch_instr;            // 20
 
     reg [2:0] is_sethi;
     reg [5:0] op3;
@@ -215,6 +216,7 @@ module control_unit(
             ID_call_instr                   <= 1'b0;
             ID_branch_instr                 <= 1'b0;
             ID_load_instr                   <= 1'b0;
+            ID_store_instr                  <= 1'b0;
             ID_register_file_Enable         <= 1'b0;
             ID_data_mem_SE                  <= 1'b0;
             ID_data_mem_RW                  <= 1'b0;
@@ -238,6 +240,8 @@ module control_unit(
                 ID_call_instr               <= 1'b0;
                 ID_load_instr               <= 1'b0; 
                 CC_Enable                   <= 1'b0;
+                // Verify if this is correct :-)
+                ID_store_instr              <= 1'b0;
                 // Ask the professor for these
                 ID_data_mem_SE              <= 1'b0;
                 ID_data_mem_RW              <= 1'b0;
@@ -264,14 +268,15 @@ module control_unit(
                 ID_branch_instr                 <= 1'b0;
                 ID_load_instr                   <= 1'b0;
                 ID_register_file_Enable         <= 1'b1;
-                // Ask professor about this
                 ID_data_mem_SE                  <= 1'b0;
                 ID_data_mem_RW                  <= 1'b0;
                 ID_data_mem_Enable              <= 1'b0;
                 ID_data_mem_Size                <= 2'b00;
-                // Also ask prof bout the alu
                 ID_ALU_OP_instr                 <= 4'b0000;
                 CC_Enable                       <= 1'b0;
+
+                // Verify This later :-)
+                ID_store_instr              <= 1'b0;
             end
             2'b10, 2'b11: begin
                 op3 = instr[24:19]; // the opcode instruction that tells what to do
@@ -279,6 +284,7 @@ module control_unit(
                     // Load/Store Instruction
                     ID_jmpl_instr               <= 1'b0;
                     ID_call_instr               <= 1'b0;
+
                     ID_branch_instr             <= 1'b0;
                     CC_Enable                   <= 1'b0;
                     ID_ALU_OP_instr             <= 4'b0000;
@@ -292,6 +298,8 @@ module control_unit(
                             // Enable Memory
                             // Trigger Memory to Read mode
                             ID_load_instr                   <= 1'b1;
+                            // Ask
+                            ID_store_instr                  <= 1'b0;
                             ID_data_mem_RW                  <= 1'b0;
                             ID_register_file_Enable         <= 1'b1;
                             if (op3 == 6'b001001) begin// Load signed byte
@@ -315,6 +323,9 @@ module control_unit(
                             begin
                                 // Store Mode (mem is set to write mode)
                                 ID_load_instr               <= 1'b0;
+                                // Ask
+                                ID_store_instr              <= 1'b0;
+
                                 ID_data_mem_RW              <= 1'b1;
                                 ID_register_file_Enable     <= 1'b0;
                                 if (op3 == 6'b000101) begin // Store byte
@@ -339,6 +350,9 @@ module control_unit(
                             6'b111000: begin
                                 ID_jmpl_instr               <= 1'b1;
                                 ID_load_instr               <= 1'b0;
+                                // Ask
+                                ID_store_instr              <= 1'b0;
+
                                 ID_data_mem_SE              <= 1'b0;
                                 ID_data_mem_RW              <= 1'b0;
                                 ID_register_file_Enable     <= 1'b0;
@@ -351,6 +365,9 @@ module control_unit(
                             6'b111100, 6'b111101: begin
                                 ID_jmpl_instr               <= 1'b0;
                                 ID_load_instr               <= 1'b0;
+                                // Ask
+                                ID_store_instr              <= 1'b1;
+
                                 ID_register_file_Enable     <= 1'b1;
                                 ID_ALU_OP_instr             <= 4'b0000;
                                 CC_Enable                   <= 1'b0;
@@ -478,6 +495,8 @@ module control_unit(
                                 ID_call_instr               <= 1'b0;
                                 ID_branch_instr             <= 1'b0;
                                 ID_load_instr               <= 1'b0;
+                                // Ask
+                                ID_store_instr              <= 1'b1;
 
                                 ID_data_mem_SE              <= 1'b0;
                                 // ID_data_mem_RW              <= 1'b1;
@@ -493,20 +512,21 @@ module control_unit(
     assign instr_signals[0]      = ID_jmpl_instr;
     assign instr_signals[1]      = ID_call_instr;
     assign instr_signals[2]      = ID_load_instr;
-    assign instr_signals[3]      = ID_register_file_Enable;
+    assign instr_signals[3]      = ID_store_instr;
+    assign instr_signals[4]      = ID_register_file_Enable;
 
-    assign instr_signals[4]      = ID_data_mem_SE;
-    assign instr_signals[5]      = ID_data_mem_RW;
-    assign instr_signals[6]      = ID_data_mem_Enable;
-    assign instr_signals[8:7]    = ID_data_mem_Size;
+    assign instr_signals[5]      = ID_data_mem_SE;
+    assign instr_signals[6]      = ID_data_mem_RW;
+    assign instr_signals[7]      = ID_data_mem_Enable;
+    assign instr_signals[9:8]    = ID_data_mem_Size;
 
-    assign instr_signals[9]      = CC_Enable;
+    assign instr_signals[10]      = CC_Enable;
 
-    assign instr_signals[10]     = I31;
-    assign instr_signals[11]     = I30;
-    assign instr_signals[12]     = I24;
-    assign instr_signals[13]     = I13;
+    assign instr_signals[11]     = I31;
+    assign instr_signals[12]     = I30;
+    assign instr_signals[13]     = I24;
+    assign instr_signals[14]     = I13;
 
-    assign instr_signals[17:14]  = ID_ALU_OP_instr;
-    assign instr_signals[18]     = ID_branch_instr;
+    assign instr_signals[18:15]  = ID_ALU_OP_instr;
+    assign instr_signals[19]     = ID_branch_instr;
 endmodule

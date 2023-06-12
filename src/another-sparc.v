@@ -25,7 +25,6 @@ module sparcV8ArchitectureTester;
     // Instruction Memory stuff
     integer fi, fo, code, i; 
     reg [7:0] data;
-    reg [36:0] dataR; // for data register
     reg [7:0] Addr; 
     wire [31:0] instruction;
     wire [31:0] instruction_out;
@@ -46,40 +45,45 @@ module sparcV8ArchitectureTester;
     reg [31:0] TA;         // The Target Address
 
     // Multiplexer outputs
-    wire [1:0] forwardMX1;              // Multiplexer selection for Mux 1 of ID Stage
-    wire [1:0] forwardMX2;              // Multiplexer selection for Mux 2 of ID Stage
-    wire [1:0] forwardMX3;              // Multiplexer selection for Mux 3 of ID Stage
+    // wire [1:0] forwardMX1;              // Multiplexer selection for Mux 1 of ID Stage
+    // wire [1:0] forwardMX2;              // Multiplexer selection for Mux 2 of ID Stage
+    // wire [1:0] forwardMX3;              // Multiplexer selection for Mux 3 of ID Stage
+
+    reg [1:0] forwardMX1;              // Multiplexer selection for Mux 1 of ID Stage
+    reg [1:0] forwardMX2;              // Multiplexer selection for Mux 2 of ID Stage
+    reg [1:0] forwardMX3;              // Multiplexer selection for Mux 3 of ID Stage
 
     wire [1:0] forwardOutputHandler;    // Selects an option from the MUX connected to the output handler
     wire [1:0] forwardPC;               // Selects an option from the MUX that inside a nPC/PC logic box
     
-    wire forwardCU;
-    // reg forwardCU;
+    // wire forwardCU;
+    reg forwardCU;
 
     // Instruction Signals from the Control Unit
-    wire [19:0] CU_SIG;     // Unslized Control Unit instructions between CU and CU_MUX
-    wire [18:0] ID_CU;      // Unslized Control Unit instructions at the ID Stage
-    wire [9:0]  EX_CU;      // Unslized Control Unit instructions at the EX Stage
-    wire  MEM_CU;     // Unslized Control Unit instructions at the MEM Stage
+    wire [18:0] CU_SIG;     // Unslized Control Unit instructions between CU and CU_MUX
+    wire [17:0] ID_CU;      // Unslized Control Unit instructions at the ID Stage
+    wire [8:0]  EX_CU;      // Unslized Control Unit instructions at the EX Stage
+    wire        MEM_CU;     // Unslized Control Unit instructions at the MEM Stage
 
     // Outputs of Components
     wire [31:0] ALU_OUT;        // ALU Output, used for the PC/nPC system
     wire [31:0] MEM_OUT;        // This is the output of a MUX located in MEM stage
-    wire [31:0] WB_OUT;         // Writeback instruction. Goe to PW of the Register File and to the Muxes of ID Stage
-    // reg [31:0] WB_OUT;
+    //wire [31:0] WB_OUT;         // Writeback instruction. Goe to PW of the Register File and to the Muxes of ID Stage
+    reg [31:0] WB_OUT;
     wire [31:0] PC_MUX_OUT;     // Output between the PC and the PC_MUX
 
     // Controls when the flow will flow and when it should stop
-    wire PC_LE;
-    wire nPC_LE;
-    wire IF_ID_Pipeline_LE;
+    // wire PC_LE;
+    // wire nPC_LE;
+    // wire IF_ID_Pipeline_LE;
+    // wire WB_Register_File_Enable;
 
-    wire reset;    // controls PC, nPC and IF/ID pipeline register
+    reg PC_LE;
+    reg nPC_LE;
+    reg IF_ID_Pipeline_LE;
+    reg reset;    
 
-    // reg cond_branch_OUT = 0; // Goes to nPC/PC handler, from condition handler
-    wire cond_branch_OUT;
-    wire [3:00] CC_COND;
-
+    reg cond_branch_OUT = 0; // Goes to nPC/PC handler, from condition handler
 
     // -------  Other Outputs -------- /
 
@@ -133,10 +137,10 @@ module sparcV8ArchitectureTester;
 
     // ------------------- In WB Stage
     // --------------------------------------------------------------------------------------------
-    wire WB_Register_File_Enable;
-    wire [4:0] RD_WB;
-    // reg WB_Register_File_Enable;
-    // reg [4:0] RD_WB;
+    // wire WB_Register_File_Enable;
+    reg WB_Register_File_Enable;
+    // wire [4:0] RD_WB;
+    reg [4:0] RD_WB;
 
 
 // -------------- M O D U L E  I N S T A N C I A T I O N -------------------- //
@@ -189,7 +193,7 @@ module sparcV8ArchitectureTester;
 
     // Precharging the Instruction Memory
     initial begin
-        fi = $fopen("precharge/sparc-instructions-2-precharge.txt","r");
+        fi = $fopen("precharge/sparc-instructions-3-precharge.txt","r");
         Addr = 8'b00000000;
         $display("Precharging Instruction Memory...\n---------------------------------------------\n");
         while (!$feof(fi)) begin
@@ -208,8 +212,9 @@ module sparcV8ArchitectureTester;
         clr <= 1'b1;
         clk <= 1'b0;
         #2 clk <= ~clk;
-        #1 clr <= 1'b0;
-        #1 clk <= ~clk; 
+        // #1 clk <= ~clk;
+        // #1 clr <= 1'b0;
+        #2 clk <= ~clk; 
        forever #2 clk = ~clk;
     end
 
@@ -227,7 +232,7 @@ module sparcV8ArchitectureTester;
         .PC_ID_out                      (PC_ID),
         .I21_0                          (ID_Imm22),
         .I29_0                          (I29_0),
-        .I29_branch_instr               (I29_branch_instr), // also known as 'a'
+        .I29_branch_instr               (I29_branch_instr),
         .I18_14                         (rs1),
         .I4_0                           (rs2),
         .I29_25                         (rd),
@@ -235,23 +240,6 @@ module sparcV8ArchitectureTester;
         .instruction_out                (instruction_out) 
     );
 
-
-    // ID_jmpl_instr;              // 1
-    // ID_call_instr;              // 2
-    // ID_load_instr;              // 3
-    // ID_store_instr;             // 4
-    // ID_register_file_Enable;    // 5
-    // ID_data_mem_SE;             // 6
-    // ID_data_mem_RW;             // 7
-    // ID_data_mem_Enable;         // 8
-    // [1:0] ID_data_mem_Size;     // 9,10
-    // CC_Enable;                  // 11
-    // I31;                        // 12
-    // I30;                        // 13
-    // I24;                        // 14
-    // I13;                        // 15
-    // [3:0] ID_ALU_OP_instr;      // 16,17,18,19
-    // ID_branch_instr;            // 20
     control_unit CU (
         .clk                            (clk),
         .clr                            (clr),
@@ -260,21 +248,13 @@ module sparcV8ArchitectureTester;
     );
 
     control_unit_mux CU_MUX (
-        .ID_branch_instr_out            (ID_branch_instr), // Branch Instruction (20), to reset and condition handler
+        .ID_branch_instr_out            (ID_branch_instr),
         .CU_SIGNALS                      (ID_CU),
 
         .S                              (forwardCU),
         .cu_in_mux                      (CU_SIG)
     );  
 
-
-    reset_handler reset_handler (
-        .reset_out          (reset),
-
-        .system_reset       (clr),
-        .ID_branch_instr    (ID_branch_instr),
-        .a                  (I29_branch_instr)
-    );
 
     // Register File, saves operand and destiny registers
     register_file REG_FILE (
@@ -289,6 +269,28 @@ module sparcV8ArchitectureTester;
         .LE                             (WB_Register_File_Enable),
         .clk                            (clk)
     );
+
+    // Precharge Register File with some values to work with
+    initial begin
+
+    WB_Register_File_Enable = 1'b1;
+    WB_OUT <= 32'b00000000000000000000000000000100; // 20
+    RD_WB <= 5'b00000; // RW
+    #4;
+    WB_OUT <= 5'b01000;
+    RD_WB <= 24;
+    #4;
+    WB_OUT <= 5'b00111;
+    RD_WB <= 3;
+    #4;
+    WB_OUT <= 5'b00010;
+    RD_WB <= 7;
+    #4;
+    WB_OUT <= 5'b11010;
+    RD_WB <= 4;
+    end
+
+
 
     mux_4x1 MX1 (
         .S                              (forwardMX1),
@@ -321,7 +323,7 @@ module sparcV8ArchitectureTester;
         .I0     (rd),
         .I1     (5'b00111),
 
-        .S      (ID_CU[1]),     // ID_CALL_INSTR
+        .S      (ID_CU[1]),
         .Y      (RD_CALL_ID)
     );
 
@@ -340,7 +342,7 @@ module sparcV8ArchitectureTester;
         .EX_IS_instr                    (IS),
         .EX_ALU_OP_instr                (ALU_OP),
         .EX_RD_instr                    (RD_EX),
-        .EX_CC_Enable_instr             (CC_Enable), // to psr and condition handlers
+        .EX_CC_Enable_instr             (CC_Enable),
         .EX_control_unit_instr          (EX_CU),
         .EX_Imm22                       (EX_Imm22),
 
@@ -370,7 +372,6 @@ module sparcV8ArchitectureTester;
         .flags                          (ALU_FLAGS)
     );  
 
-    // -------------------------------------
     psr_register PSR (
         .out                            (PSR_OUT),
         .carry                          (CIN),
@@ -379,50 +380,29 @@ module sparcV8ArchitectureTester;
         .clk                            (clk)
     );
 
-    mux_condtion mux_condtion (
-        .S                              (CC_Enable), // It acts as a selector
-        .I0                             (PSR_OUT),
-        .I1                             (ALU_FLAGS),
-        .Y                              (CC_COND)
-    );
-    // ---------------------------------------
-
-    condition_handler condition_handler (
-        .flags                          (CC_COND),
-        .cond                           (cond),
-        .ID_branch_instr                (ID_branch_instr),
-        .branch_out                     (cond_branch_OUT)
-    );
-    ////////////////////////////////////
-// ID store instruction
-// add new store signal to CU
-//
-
-    hazard_forwarding_unit hazard_forwarding_unit (
-        .forwardMX1                     (forwardMX1),
-        .forwardMX2                     (forwardMX2),
-        .forwardMX3                     (forwardMX3),
+    // hazard_forwarding_unit hazard_forwarding_unit (
+    //     .forwardMX1                     (forwardMX1),
+    //     .forwardMX2                     (forwardMX2),
+    //     .forwardMX3                     (forwardMX3),
         
-        .nPC_LE                         (nPC_LE),
-        .PC_LE                          (PC_LE),
-        .IF_ID_LE                       (IF_ID_Pipeline_LE),
+    //     .nPC_LE                         (nPC_LE),
+    //     .PC_LE                          (PC_LE),
+    //     .IF_ID_LE                       (IF_ID_Pipeline_LE),
         
-        .CU_S                           (forwardCU), 
+    //     .CU_S                           (forwardCU), 
         
-        .EX_Register_File_Enable        (EX_CU[3]),
-        .MEM_Register_File_Enable       (),
-        .WB_Register_File_Enable        (WB_Register_File_Enable),
+    //     .EX_Register_File_Enable        (EX_CU[3]),
+    //     .MEM_Register_File_Enable       (MEM_CU),
+    //     .WB_Register_File_Enable        (WB_Register_File_Enable),
         
-        .EX_RD                          (RD_EX),
-        .MEM_RD                         (RD_MEM),
-        .WB_RD                          (RD_WB),
+    //     .EX_RD                          (RD_EX),
+    //     .MEM_RD                         (RD_MEM),
+    //     .WB_RD                          (RD_WB),
         
-        .ID_rs1                         (rs1),
-        .ID_rs2                         (rs2),
-        .ID_rd                          (rd),
-        .EX_load_instr                  (EX_CU[2]), // the load instruction, check the EX pipeline and CU
-        .ID_store_instr                 (ID_CU[3])
-    );
+    //     .ID_rs1                         (rs1),
+    //     .ID_rs2                         (rs2),
+    //     .ID_rd                          (rd)
+    // );
 
 
     // -|-|-|-|-|-|-|-|----- M E M  S T A G E -----|-|-|-|-|-|-|-|- //
@@ -440,8 +420,7 @@ module sparcV8ArchitectureTester;
         .Output_Handler_instructions    (OutputHandlerInstructions),
         .MEM_control_unit_instr         (MEM_CU),
         .PC_MEM                         (PC_MEM),
-        .MEM_RD_instr                   (RD_MEM),
-        .Store_instr                    (MEM_Store_instr)
+        .MEM_RD_instr                   (RD_MEM)
     );
 
 // -|-|-|-|-|-|-|-|----- W B  S T A G E -----|-|-|-|-|-|-|-|- //
@@ -452,12 +431,12 @@ module sparcV8ArchitectureTester;
         .clr                            (clr),
         .MEM_RD_instr                   (RD_MEM),
         .MUX_out                        (PC_MEM), // (OutputMUX),
-        .MEM_control_unit_instr         (MEM_CU),
+        .MEM_control_unit_instr         (MEM_CU)
 
         // OUTPUT 
-        .WB_RD_instr                    (RD_WB),
-        .WB_RD_out                      (WB_OUT),
-        .WB_Register_File_Enable        (WB_Register_File_Enable) 
+        // .WB_RD_instr                    (RD_WB),
+        // .WB_RD_out                      (WB_OUT),
+        // .WB_Register_File_Enable        (WB_Register_File_Enable) 
     );
 
 
@@ -465,9 +444,9 @@ module sparcV8ArchitectureTester;
     // ------------------------- T E S T E R S --------------------------- //
 
     initial begin
-        $dumpfile("gtk-wave-testers/sparc-debug-test-thing.vcd"); // pass this to GTK Wave to visualize better wtf is going on
+        $dumpfile("gtk-wave-testers/sparcv8-architecture-Tester.vcd"); // pass this to GTK Wave to visualize better wtf is going on
         $dumpvars(0, sparcV8ArchitectureTester);
-        #100;
+        #50;
         $display("\n----------------------------------------------------------\nSimmulation Complete! Remember to dump this on GTK Wave and subscribe to PewDiePie...");
         $finish;
     end 
@@ -516,18 +495,21 @@ module sparcV8ArchitectureTester;
     end
 
     initial begin
-        // clr = 1;
-        // #18
-        // clr=0;
-        // PC_LE   = 1'b1;f
-        // nPC_LE  = 1'b1;
-        // IF_ID_Pipeline_LE   = 1'b1;
-        // forwardCU = 1'b0;
+        clr = 1;
+        #18
+        clr=0;
+        PC_LE   = 1'b1;
+        nPC_LE  = 1'b1;
+        IF_ID_Pipeline_LE   = 1'b1;
+        forwardCU = 1'b0;
 
-        // forwardMX1 = 2'b00;
-        // forwardMX2 = 2'b00;
-        // forwardMX3 = 2'b00;
+        forwardMX1 = 2'b00;
+        forwardMX2 = 2'b00;
+        forwardMX3 = 2'b00;
 
+        reset = 1;
+        #3;
+        reset = 0;
         // #30;
         // clr = 1;
         // reset = 1;

@@ -125,7 +125,7 @@ endmodule
 module pipeline_ID_EX (
     input clk, clr, // clock and clear
 
-    input  wire [17:0] ID_control_unit_instr,      // Control Unit Instructions
+    input  wire [18:0] ID_control_unit_instr,      // Control Unit Instructions
     input  wire [31:0] PC,
     input  wire [4:0]  ID_RD_instr,
     input  wire [21:0] Imm22,                     // These will exist if op == 0 (SETHI in this case)
@@ -142,17 +142,17 @@ module pipeline_ID_EX (
     output reg [3:0]  EX_IS_instr,                // The bits used by the operand handler
     output reg [3:0]  EX_ALU_OP_instr,
     output reg [4:0]  EX_RD_instr,
-    output reg        EX_CC_Enable_instr,
+    output reg        EX_CC_Enable_instr,        // CC Enable, PSR/Control Handler
     output reg [21:0] EX_Imm22,
 
-    output reg [8:0]  EX_control_unit_instr      // The rest of the control unit instructions that don't need to be deconstructed
+    output reg [9:0]  EX_control_unit_instr      // The rest of the control unit instructions that don't need to be deconstructed
 );
     always @(posedge clk) begin
         if (clr) begin
             PC_EX                       <= 32'b0;
             EX_IS_instr                 <= 4'b0;
             EX_ALU_OP_instr             <= 4'b0;
-            EX_control_unit_instr       <= 9'b0;
+            EX_control_unit_instr       <= 10'b0;
             EX_RD_instr                 <= 5'b0;
             EX_CC_Enable_instr          <= 1'b0;
             EX_Imm22                    <= 22'b0;
@@ -161,11 +161,11 @@ module pipeline_ID_EX (
             EX_MX3                      <= 32'b0; 
         end else begin
             PC_EX                       <= PC;
-            EX_IS_instr                 <= ID_control_unit_instr[13:10];
-            EX_ALU_OP_instr             <= ID_control_unit_instr[17:14];
-            EX_control_unit_instr       <= ID_control_unit_instr[8:0];
+            EX_IS_instr                 <= ID_control_unit_instr[14:11];
+            EX_ALU_OP_instr             <= ID_control_unit_instr[18:15];
+            EX_control_unit_instr       <= ID_control_unit_instr[9:0];
             EX_RD_instr                 <= ID_RD_instr;
-            EX_CC_Enable_instr          <= ID_control_unit_instr[9];
+            EX_CC_Enable_instr          <= ID_control_unit_instr[10];
             EX_Imm22                    <= Imm22;
             EX_MX1                      <= ID_MX1;
             EX_MX2                      <= ID_MX2;
@@ -213,7 +213,7 @@ endmodule
  **************************************************************************/
 module pipeline_EX_MEM (
     input wire clk, clr,
-    input wire [8:0]   EX_control_unit_instr,
+    input wire [9:0]   EX_control_unit_instr,
     input wire [31:0]  PC,
     input wire [4:0]   EX_RD_instr,
     input wire [31:0]  EX_ALU_OUT,
@@ -221,7 +221,8 @@ module pipeline_EX_MEM (
     output reg [31:0] MEM_ALU_OUT,
     output reg [4:0]  Data_Mem_instructions,
     output reg [2:0]  Output_Handler_instructions,
-    output reg        MEM_control_unit_instr,
+    output reg MEM_control_unit_instr,
+    output reg Store_instr,
     output reg [31:0] PC_MEM,
     output reg [4:0]  MEM_RD_instr
 );
@@ -231,13 +232,15 @@ module pipeline_EX_MEM (
             Data_Mem_instructions        <= 5'b0;
             Output_Handler_instructions  <= 3'b0;
             MEM_control_unit_instr       <= 1'b0;
+            Store_instr                  <= 1'b0;
             MEM_RD_instr                 <= 5'b0;
             PC_MEM                       <= 32'b0;
         end else begin
             MEM_ALU_OUT                  <= EX_ALU_OUT;
-            Data_Mem_instructions        <= EX_control_unit_instr[8:4];
-            Output_Handler_instructions  <= EX_control_unit_instr[2:0];
-            MEM_control_unit_instr       <= EX_control_unit_instr[3];
+            Data_Mem_instructions        <= EX_control_unit_instr[9:5];
+            Output_Handler_instructions  <= EX_control_unit_instr[2:0]; // jmpl, load, call
+            MEM_control_unit_instr       <= EX_control_unit_instr[4];
+            Store_instr                  <= EX_control_unit_instr[3];
             MEM_RD_instr                 <= EX_RD_instr;
             PC_MEM                       <= PC;
         end
@@ -285,7 +288,7 @@ module pipeline_MEM_WB (
 
     output reg [4:0]  WB_RD_instr,
     output reg [31:0] WB_RD_out,
-    output reg        WB_Register_File_Enable 
+    output reg        WB_Register_File_Enable
     );
     always@(posedge clk) begin
         if (clr) begin

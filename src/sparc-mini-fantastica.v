@@ -57,9 +57,11 @@ module phase3Tester;
     wire [4:0] rd;                 // destiny register
     wire [3:0] cond;               // branch condition instruction
 
+    wire MEM_Store_instr;          // Store instruction from the CU at the MEM stage
+
     // Instruction Signals from the Control Unit
-    wire [17:0] ID_CU;
-    wire [8:0]  EX_CU;
+    wire [18:0] ID_CU;
+    wire [9:0]  EX_CU;
     wire        MEM_CU;
 
     // A register where you store stuff, propagates the 
@@ -79,7 +81,7 @@ module phase3Tester;
 
     // Branch Instruction from CU
     wire ID_branch_instr;
-    wire [18:0] CU_SIG; // Output instructions between CU and CU_MUX
+    wire [19:0] CU_SIG; // Output instructions between CU and CU_MUX
     reg S; // The signal that controls the CU_MUX
 
     wire [31:0] nPC4;
@@ -206,7 +208,8 @@ module phase3Tester;
         .Output_Handler_instructions    (OutputHandlerInstructions),
         .MEM_control_unit_instr         (MEM_CU),
         .PC_MEM                         (PC_MEM),
-        .MEM_RD_instr                   (RD_MEM)
+        .MEM_RD_instr                   (RD_MEM),
+        .Store_instr                    (MEM_Store_instr)
     );
 
 
@@ -216,11 +219,13 @@ module phase3Tester;
         .MEM_RD_instr                   (RD_MEM),
         .MUX_out                        (PC_MEM), // (OutputMUX),
 
+
+
         // INPUT 
         .MEM_control_unit_instr         (MEM_CU),
         .WB_RD_instr                    (RD_WB),
         .WB_RD_out                      (WB_RD_out),
-        .WB_Register_File_Enable        (WB_Register_File_Enable) 
+        .WB_Register_File_Enable        (WB_Register_File_Enable)
     );
 
 

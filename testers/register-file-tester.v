@@ -48,8 +48,8 @@ module register_file_tester;
 
 
     initial begin
-        $display ("  PW         PA          PB         PD    ||||  RW    RA     RB   RD  LE Clk");
-        $monitor("%h | %h | %h | %h |||| %b %b %b %b %b %b", PW, PA, PB, PD, RW, RA, RB, RD, LE, Clk);
+        $display ("  PW         PA          PB         PD                   ||||  RW    RA     RB   RD    |||| LE Clk");
+        $monitor("%d | %d | %d | %d        |||| %d %d %d %d    ||||  %d %d", PW, PA, PB, PD, RW, RA, RB, RD, LE, Clk);
 
     end
 

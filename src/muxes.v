@@ -35,12 +35,45 @@ always @ (S, I0, I1)
 endmodule
 
 module mux_condtion (
+    output reg [3:0] Y,
     input [3:0] I0, 
     input [3:0] I1,
-    input        S,
-    output reg [3:0] Y
+    input        S
 );
 always @ (S, I0, I1) 
     if (S) Y = I1; 
     else Y = I0; 
+endmodule
+
+module adder32Bit (
+    output reg [31:0] out,
+    input [31:0] a,
+    input [31:0] b
+);
+    always @*
+        out <= a + b;
+endmodule
+
+
+module SignExtender( 
+    output reg [23:0] extended,
+    input wire [21:0] extend,
+    input wire clk
+    );
+
+    always @* begin
+        if (clk == 1) extended[23:0] <= { {2{extend[21]}}, extend[21:0] };
+        else extended[21:0] = extend[21:0];
+    end
+endmodule
+
+
+module multiplier (
+    output reg [31:0] multipliedOut,
+    input  [31:0]     in
+    
+);
+    always @* begin
+        multipliedOut <= in * 32'd4;
+    end
 endmodule
