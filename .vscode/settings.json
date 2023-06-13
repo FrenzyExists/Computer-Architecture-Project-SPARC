@@ -5,5 +5,6 @@
   "verilog.linting.modelsim.runAtFileLocation": true,
   "verilog.linting.linter": "iverilog",
   "editor.tabCompletion": "on",
-  "terminal.integrated.tabs.enableAnimation": false
+  "terminal.integrated.tabs.enableAnimation": false,
+  "editor.tabSize": 2
 }

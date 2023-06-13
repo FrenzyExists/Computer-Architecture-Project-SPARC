@@ -68,10 +68,9 @@ module SignExtender(
 endmodule
 
 
-module multiplier (
+module multiplierBy4 (
     output reg [31:0] multipliedOut,
     input  [31:0]     in
-    
 );
     always @* begin
         multipliedOut <= in * 32'd4;

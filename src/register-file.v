@@ -125,6 +125,11 @@ R16, R17, R18, R19, R20, R21, R22, R23, R24, R25, R26, R27, R28, R29, R30, R31);
     5'b11111: Y = R31;
     endcase
     end
+
+    // For debugging only, remove before synthetizing
+    always @(R5, R6, R16, R17, R18) begin
+        $display("R5:  %d | R6:  %d\nR16: %d | R17: %d\nR18: %d\n----------------------------------", R5, R6, R16, R17, R18);
+    end
 endmodule
 
 //REGISTER - The register takes care of charging the data in D to the Q output register.

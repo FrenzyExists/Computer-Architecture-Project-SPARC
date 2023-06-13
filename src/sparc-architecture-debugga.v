@@ -43,7 +43,11 @@ module sparcV8ArchitectureTester;
     wire [31:0] PC_MEM;  // The Program Counter state at the Memory State
 
     // Used to calculate the instruction that should be executed by modifying the Program Counter (PC)
-    reg [31:0] TA;         // The Target Address
+    wire [31:0] TA;         // The Target Address
+    wire [23:0] ID_Imm22Extended;
+    wire [31:0] CallJmplAddress;
+    wire [31:0] CallJmplAddressMultiplied;
+
 
     // Multiplexer outputs
     wire [1:0] forwardMX1;              // Multiplexer selection for Mux 1 of ID Stage
@@ -142,7 +146,7 @@ module sparcV8ArchitectureTester;
 // -------------- M O D U L E  I N S T A N C I A T I O N -------------------- //
 
     // Adder, updates the PC
-    PC_adder adder (
+    PC_adder PC_adder (
         .PC_in(nPC),
         .PC_out(nPC4) // nPC + 4
     );
@@ -226,7 +230,7 @@ module sparcV8ArchitectureTester;
 
         .PC_ID_out                      (PC_ID),
         .I21_0                          (ID_Imm22),
-        .I29_0                          (I29_0),
+        .I29_0                          (I29_0),   // Displacement, used on call instructions
         .I29_branch_instr               (I29_branch_instr), // also known as 'a'
         .I18_14                         (rs1),
         .I4_0                           (rs2),
@@ -235,6 +239,28 @@ module sparcV8ArchitectureTester;
         .instruction_out                (instruction_out) 
     );
 
+    SignExtender SignExtender (
+        .extended               (ID_Imm22Extended),
+        .extend                 (ID_Imm22)
+    );
+
+    mux_2x1 TargetAddressMUX (
+        .Y                      (CallJmplAddress), // Its either used by call instructions or jmpl instructions. I think branch instructions use this
+        .S                      (ID_branch_instr),
+        .I0                     ({8'b0, {ID_Imm22Extended}}),
+        .I1                     ({2'b00, {I29_0}})
+    );
+
+    multiplierBy4 multiplierBy4 (
+        .multipliedOut          (CallJmplAddressMultiplied),
+        .in                     (CallJmplAddress)
+    );
+
+    adder32Bit adder32Bit (
+        .out (TA),
+        .a   (CallJmplAddressMultiplied),
+        .b   (PC_ID)
+    );
 
     // ID_jmpl_instr;              // 1
     // ID_call_instr;              // 2
@@ -252,14 +278,14 @@ module sparcV8ArchitectureTester;
     // I13;                        // 15
     // [3:0] ID_ALU_OP_instr;      // 16,17,18,19
     // ID_branch_instr;            // 20
-    control_unit CU (
+    control_unit control_unit (
         .clk                            (clk),
         .clr                            (clr),
         .instr                          (instruction_out),
         .instr_signals                  (CU_SIG)
     );
 
-    control_unit_mux CU_MUX (
+    control_unit_mux control_unit_mux (
         .ID_branch_instr_out            (ID_branch_instr), // Branch Instruction (20), to reset and condition handler
         .CU_SIGNALS                      (ID_CU),
 
@@ -277,7 +303,7 @@ module sparcV8ArchitectureTester;
     );
 
     // Register File, saves operand and destiny registers
-    register_file REG_FILE (
+    register_file register_file (
         .PA                             (pa),
         .PB                             (pb),
         .PD                             (pd),
@@ -465,12 +491,22 @@ module sparcV8ArchitectureTester;
     // ------------------------- T E S T E R S --------------------------- //
 
     initial begin
-        $dumpfile("gtk-wave-testers/sparc-debug-test-thing.vcd"); // pass this to GTK Wave to visualize better wtf is going on
+        $dumpfile("gtk-wave-testers/sparc-debug-test-new.vcd"); // pass this to GTK Wave to visualize better wtf is going on
         $dumpvars(0, sparcV8ArchitectureTester);
         #100;
         $display("\n----------------------------------------------------------\nSimmulation Complete! Remember to dump this on GTK Wave and subscribe to PewDiePie...");
         $finish;
     end 
+
+    initial begin
+        $display("Phase 4 -> Verifying Registers r5, r6, r16 and r18 as specified");
+        $monitor("\n\n\nTIME: %d\n---------------------------------\
+        \nPC: %d | nPC: %d",
+        $time,
+        PC, nPC,
+        instruction_out
+        );
+    end
 
     // initial  begin
     //     $monitor("\n\n\nTIME: %d | S: %b\n---------------------------------\
@@ -508,30 +544,5 @@ module sparcV8ArchitectureTester;
     //     WB_Register_File_Enable
     //     );
     // end
-
-    initial begin
-        // WB_Register_File_Enable = 1'b1;
-        // #10;
-        // WB_Register_File_Enable = 1'b0;
-    end
-
-    initial begin
-        // clr = 1;
-        // #18
-        // clr=0;
-        // PC_LE   = 1'b1;f
-        // nPC_LE  = 1'b1;
-        // IF_ID_Pipeline_LE   = 1'b1;
-        // forwardCU = 1'b0;
-
-        // forwardMX1 = 2'b00;
-        // forwardMX2 = 2'b00;
-        // forwardMX3 = 2'b00;
-
-        // #30;
-        // clr = 1;
-        // reset = 1;
-    end
-
 
 endmodule
