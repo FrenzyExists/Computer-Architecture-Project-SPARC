@@ -4,7 +4,6 @@
 `include "src/decoders.v"
 // `include "src/muxes.v"
 
-
 module register_file (output [31:0] PA, PB, PD, input [31:0] PW,  input [4:0] RW, RA, RB, RD, input LE, clk);
     //Outputs: Puertos A, B y D
     //Inputs: Puerto de Entrada (PW), RW (Write Register) y LE (BinaryDecoder Selector y "load"), 
@@ -24,15 +23,15 @@ module register_file (output [31:0] PA, PB, PD, input [31:0] PW,  input [4:0] RW
     //correspondiente y lo envian a las salidas de los registros:
 
     //Multiplexer for PA register
-    mux_32bit mux_32x1A (PA, RA, Q0, Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9,
+    mux_32bit mux_32x1A (PA, RA, 32'b0, Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9,
                     Q10, Q11, Q12, Q13, Q14, Q15, Q16, Q17, Q18, Q19, Q20, Q21, Q22, 
                     Q23, Q24, Q25, Q26, Q27, Q28, Q29, Q30, Q31);
     //Multiplexer for PB register
-    mux_32bit mux_32x1B (PB, RB, Q0, Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9,
+    mux_32bit mux_32x1B (PB, RB, 32'b0, Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9,
                     Q10, Q11, Q12, Q13, Q14, Q15, Q16, Q17, Q18, Q19, Q20, Q21, Q22, 
                     Q23, Q24, Q25, Q26, Q27, Q28, Q29, Q30, Q31);
     //Multiplexer for PD register
-    mux_32bit mux_32x1D (PD, RD, Q0, Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9,
+    mux_32bit mux_32x1D (PD, RD, 32'b0, Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9,
                     Q10, Q11, Q12, Q13, Q14, Q15, Q16, Q17, Q18, Q19, Q20, Q21, Q22, 
                     Q23, Q24, Q25, Q26, Q27, Q28, Q29, Q30, Q31);                
    
@@ -70,12 +69,6 @@ module register_file (output [31:0] PA, PB, PD, input [31:0] PW,  input [4:0] RW
     register_32bit R29 (Q29, PW, clk, E[29]);
     register_32bit R30 (Q30, PW, clk, E[30]);
     register_32bit R31 (Q31, PW, clk, E[31]);
-
-    // Uncomment for testing, else don't touch or it won't synthetize
-    // always @(*) begin
-    //     $display("LE: %b  | PA: %b", LE, PA);
-    // end
-
 endmodule
 
 //-----------------Modules that will be instantiated in the file------------------------------//
@@ -124,11 +117,6 @@ R16, R17, R18, R19, R20, R21, R22, R23, R24, R25, R26, R27, R28, R29, R30, R31);
     5'b11110: Y = R30;
     5'b11111: Y = R31;
     endcase
-    end
-
-    // For debugging only, remove before synthetizing
-    always @(R5, R6, R16, R17, R18) begin
-        $display("R5:  %d | R6:  %d\nR16: %d | R17: %d\nR18: %d\n----------------------------------", R5, R6, R16, R17, R18);
     end
 endmodule
 

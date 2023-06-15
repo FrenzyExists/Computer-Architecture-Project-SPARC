@@ -45,9 +45,8 @@ module nPC_PC_Handler (
     output reg [1:0] pc_handler_out_selector
     );
     always @(branch_out, ID_jmpl_instr, ID_call_instr) begin
-        if (ID_jmpl_instr)                   pc_handler_out_selector <= 2'b00; // Jmpl Instruction, use ALU out
-        else if (ID_call_instr | branch_out) pc_handler_out_selector <= 2'b11; // call or branch, use TA
-        else if (branch_out)                 pc_handler_out_selector <= 2'b01; // Branch Taken        
+        if (ID_jmpl_instr)                   pc_handler_out_selector <= 2'b10; // Jmpl Instruction, use ALU out
+        else if (ID_call_instr | branch_out) pc_handler_out_selector <= 2'b01; // call or branch, use TA
         else                                 pc_handler_out_selector <= 2'b00; // Normal Execution nPC+4
     end
 endmodule
@@ -82,7 +81,6 @@ module PC_adder (
     end
 endmodule
 
-
 /*
  * PC/nPC Register module
  *
@@ -91,96 +89,42 @@ endmodule
  * a multiplexer that selects between different input signals to update the PC register.
  * The selected signal is determined by the mux_select input, which is a 2-bit wide signal.
  *
- * Inputs:
- *   clk: Clock signal
- *   clr: Active low clear signal
- *   reset: Reset signal to initialize the register to zero
- *   LE: Load enable signal, determines when to update the PC register
- *   nPC: 32-bit input signal for the next program counter
- *   ALU_OUT: 32-bit input signal from the ALU
- *   TA: 32-bit input signal from the target address
- *   mux_select: 2-bit input signal to select between different input signals
- *
- * Outputs:
- *   OUT: 32-bit output signal that holds the value of the PC register after the update
- *
- * Example usage:
- *   PC_nPC_Register PC (
- *     .clk(clk),
- *     .clr(clr),
- *     .reset(reset),
- *     .LE(LE),
- *     .nPC(nPC),
- *     .ALU_OUT(ALU_OUT),
- *     .TA(TA),
- *     .mux_select(mux_select),
- *     .OUT(PC_out)
- *   );
  */
 
- // ===============================
-module PC_Reg(
+module PC_Reg (
     output reg [31:0] Q,
     input LE, clk, clr,
     input [31:0] D
 );
-    always @ (posedge clk) 
+    always @ (posedge clk) begin
         if (clr) Q <= 32'b0;
         else if (LE) Q <= D;
+    end
 endmodule
 
-module nPC_Reg(
+module nPC_Reg (
     output reg [31:0] Q,
     input LE, clk, clr,
     input [31:0] D
 );
-    always @ (posedge clk) 
+    always @ (posedge clk) begin
         if (clr) Q <= 32'd4;
         else if (LE) Q <= D;
+    end
 endmodule
 
-module PC_MUX(
+module PC_MUX (
     input [31:0] ALU_OUT,
     input [31:0] TA,
     input [31:0] nPC,
     input [1:0] select,
     output reg [31:0] Q
 );
-
     always @(*) begin
         case (select)
             2'b00: Q <= nPC;
             2'b01: Q <= TA;
             2'b10: Q <= ALU_OUT;
-            default: Q <= Q;
         endcase
-    end
-endmodule
-// =============================
-
-
-// Old
-module PC_nPC_Register(
-    input                clk,
-    input                clr,
-    input                LE,
-    input      [31:0]    nPC,
-    input      [31:0]    ALU_OUT,
-    input      [31:0]    TA,
-    input      [1:0]     mux_select,
-    output reg [31:0]    OUT
-    );
-
-    always @ (posedge clk) begin
-        if(clr) begin
-            OUT <= 32'b0;
-        end else if (LE) begin
-            case (mux_select)
-                2'b00: OUT <= nPC;
-                2'b01:  OUT <= TA;
-                2'b10:  OUT <= ALU_OUT;
-                default: OUT <= OUT;
-            endcase
-        end
     end
 endmodule

@@ -44,7 +44,7 @@ module sparcV8ArchitectureTester;
 
     // Used to calculate the instruction that should be executed by modifying the Program Counter (PC)
     wire [31:0] TA;         // The Target Address
-    wire [23:0] ID_Imm22Extended;
+    wire [31:0] ID_Imm22Extended;
     wire [31:0] CallJmplAddress;
     wire [31:0] CallJmplAddressMultiplied;
 
@@ -134,6 +134,9 @@ module sparcV8ArchitectureTester;
     wire [4:0] RD_MEM; // Destination Register filtered by a MUX (MEM)
     wire [4:0] DataMemInstructions;         // This goes on the Data Memory
     wire [2:0] OutputHandlerInstructions;   // This goes on the output handler
+    wire [31:0] MEM_ALU_OUT_Address;
+    wire [31:0] DataMemory_OUT;
+    wire [31:0] MEM_MX3;
 
     // ------------------- In WB Stage
     // --------------------------------------------------------------------------------------------
@@ -143,11 +146,15 @@ module sparcV8ArchitectureTester;
     // reg [4:0] RD_WB;
 
 
+
+    reg [31:0] TempR5;
+
+
 // -------------- M O D U L E  I N S T A N C I A T I O N -------------------- //
 
     // Adder, updates the PC
     PC_adder PC_adder (
-        .PC_in(nPC),
+        .PC_in(PC_MUX_OUT),
         .PC_out(nPC4) // nPC + 4
     );
 
@@ -186,10 +193,23 @@ module sparcV8ArchitectureTester;
     );
 
     // Instruction Memory
-    rom_512x8 ram1 (
+    rom_512x8 ROM (
         instruction, // OUT
         PC[7:0]      // IN
     );
+
+
+    // Data Memory
+    ram_512x8 RAM (
+        .DataOut                        (DataMemory_OUT),
+        .SignExtend                     (DataMemInstructions[0]),   
+        .ReadWrite                      (DataMemInstructions[1]),      
+        .Enable                         (DataMemInstructions[2]), 
+        .Size                           (DataMemInstructions[4:3]),
+        .Address                        (MEM_ALU_OUT_Address[7:0]),
+        .DataIn                         (MEM_MX3)
+    );
+
 
     // Precharging the Instruction Memory
     initial begin
@@ -200,7 +220,8 @@ module sparcV8ArchitectureTester;
             if (Addr % 4 == 0 && !$feof(fi)) $display("\n\nLoading Next Instruction...\n-------------------------------------------------------------------------");
             code = $fscanf(fi, "%b", data);
             $display("---- %b ----\n", data);
-            ram1.Mem[Addr] = data;
+            ROM.Mem[Addr] = data;
+            RAM.Mem[Addr] = data;
             Addr = Addr + 1;
         end
         $fclose(fi);
@@ -247,8 +268,8 @@ module sparcV8ArchitectureTester;
     mux_2x1 TargetAddressMUX (
         .Y                      (CallJmplAddress), // Its either used by call instructions or jmpl instructions. I think branch instructions use this
         .S                      (ID_branch_instr),
-        .I0                     ({8'b0, {ID_Imm22Extended}}),
-        .I1                     ({2'b00, {I29_0}})
+        .I0                     ({2'b00, {I29_0}}),
+        .I1                     (ID_Imm22Extended)
     );
 
     multiplierBy4 multiplierBy4 (
@@ -318,11 +339,11 @@ module sparcV8ArchitectureTester;
 
     mux_4x1 MX1 (
         .S                              (forwardMX1),
-        .I0                             (pa),      // File Register value selected by rs1
-        .I1                             (ALU_OUT), // EX_RD
-        .I2                             (MEM_OUT), // MEM_RD
-        .I3                             (WB_OUT),  // WB_RD 
-        .Y                              (ID_MX1)   // MUX OUTPUT
+        .I0                             (pa),               // File Register value selected by rs1
+        .I1                             (ALU_OUT),          // EX_RD
+        .I2                             (MEM_OUT),          // MEM_RD
+        .I3                             (WB_OUT),           // WB_RD 
+        .Y                              (ID_MX1)            // MUX OUTPUT
     );
 
     mux_4x1 MX2 (
@@ -396,7 +417,6 @@ module sparcV8ArchitectureTester;
         .flags                          (ALU_FLAGS)
     );  
 
-    // -------------------------------------
     psr_register PSR (
         .out                            (PSR_OUT),
         .carry                          (CIN),
@@ -411,7 +431,6 @@ module sparcV8ArchitectureTester;
         .I1                             (ALU_FLAGS),
         .Y                              (CC_COND)
     );
-    // ---------------------------------------
 
     condition_handler condition_handler (
         .flags                          (CC_COND),
@@ -419,10 +438,6 @@ module sparcV8ArchitectureTester;
         .ID_branch_instr                (ID_branch_instr),
         .branch_out                     (cond_branch_OUT)
     );
-    ////////////////////////////////////
-// ID store instruction
-// add new store signal to CU
-//
 
     hazard_forwarding_unit hazard_forwarding_unit (
         .forwardMX1                     (forwardMX1),
@@ -435,8 +450,8 @@ module sparcV8ArchitectureTester;
         
         .CU_S                           (forwardCU), 
         
-        .EX_Register_File_Enable        (EX_CU[3]),
-        .MEM_Register_File_Enable       (),
+        .EX_Register_File_Enable        (EX_CU[4]),
+        .MEM_Register_File_Enable       (MEM_CU),
         .WB_Register_File_Enable        (WB_Register_File_Enable),
         
         .EX_RD                          (RD_EX),
@@ -450,7 +465,6 @@ module sparcV8ArchitectureTester;
         .ID_store_instr                 (ID_CU[3])
     );
 
-
     // -|-|-|-|-|-|-|-|----- M E M  S T A G E -----|-|-|-|-|-|-|-|- //
 
     pipeline_EX_MEM pipeline_EX_MEM (
@@ -460,6 +474,8 @@ module sparcV8ArchitectureTester;
         .EX_control_unit_instr          (EX_CU),
         .PC                             (PC_EX),
         .EX_RD_instr                    (RD_EX),
+        .EX_ALU_OUT                     (ALU_OUT),
+        .EX_MX3                         (EX_MX3),
 
         // OUTPUTS
         .Data_Mem_instructions          (DataMemInstructions),
@@ -467,7 +483,26 @@ module sparcV8ArchitectureTester;
         .MEM_control_unit_instr         (MEM_CU),
         .PC_MEM                         (PC_MEM),
         .MEM_RD_instr                   (RD_MEM),
-        .Store_instr                    (MEM_Store_instr)
+        .Store_instr                    (MEM_Store_instr),
+        .MEM_ALU_OUT                    (MEM_ALU_OUT_Address),
+        .MEM_MX3                        (MEM_MX3)
+    );
+
+
+    mux_4x1 OutputHandlerMUX (
+        .S (forwardOutputHandler),
+        .I0(PC_MEM),        // DataOut31:0  -> 00
+        .I1(MEM_ALU_OUT_Address),   // ALU-OUT31:0  -> 01
+        .I2(DataMemory_OUT),                // PC31:0       -> 10
+        .I3(/**/),                  // X
+        .Y (MEM_OUT)                // Goes to WB and back to the MUXes from ID stage
+    );
+
+    output_handler output_handler (
+        .MEM_jmpl_instr                 (OutputHandlerInstructions[0]),
+        .MEM_call_instr                 (OutputHandlerInstructions[1]),
+        .MEM_load_instr                 (OutputHandlerInstructions[2]),
+        .output_handler_out_selector    (forwardOutputHandler)
     );
 
 // -|-|-|-|-|-|-|-|----- W B  S T A G E -----|-|-|-|-|-|-|-|- //
@@ -477,8 +512,8 @@ module sparcV8ArchitectureTester;
         .clk                            (clk),
         .clr                            (clr),
         .MEM_RD_instr                   (RD_MEM),
-        .MUX_out                        (PC_MEM), // (OutputMUX),
-        .MEM_control_unit_instr         (MEM_CU),
+        .MUX_out                        (MEM_OUT), // (OutputMUX),
+        .MEM_control_unit_instr         (MEM_CU),   // MEM Register File Enable
 
         // OUTPUT 
         .WB_RD_instr                    (RD_WB),
@@ -486,10 +521,7 @@ module sparcV8ArchitectureTester;
         .WB_Register_File_Enable        (WB_Register_File_Enable) 
     );
 
-
-
     // ------------------------- T E S T E R S --------------------------- //
-
     initial begin
         $dumpfile("gtk-wave-testers/sparc-debug-test-new.vcd"); // pass this to GTK Wave to visualize better wtf is going on
         $dumpvars(0, sparcV8ArchitectureTester);
@@ -498,18 +530,35 @@ module sparcV8ArchitectureTester;
         $finish;
     end 
 
+    // initial begin
+    //     $monitor("\n\n\nTIME: %d\n---------------------------------\
+    //     \nPC: %d\n--------------------------------------\
+    //     \nR5: %d | R6: %d\
+    //     \nR16: %d | R17: %d\
+    //     \nR18: %d\
+    //     \n--------------------------------------------------",
+    //     $time,
+    //     PC,
+    //     register_file.Q5, register_file.Q6, register_file.Q16, register_file.Q17, register_file.Q18);
+    // end
+
+    // initial begin
+    //     #90;
+    //     $display("LOC 59", RAM.Mem[59]);
+    // end
+
     initial begin
-        $display("Phase 4 -> Verifying Registers r5, r6, r16 and r18 as specified");
-        $monitor("\n\n\nTIME: %d\n---------------------------------\
-        \nPC: %d | nPC: %d",
-        $time,
-        PC, nPC,
-        instruction_out
-        );
+        $monitor("PC: %d | Data: %d | Address: %d | Size: %b | Enable: %b | R/W: %b", PC, MEM_MX3, MEM_ALU_OUT_Address[7:0], DataMemInstructions[4:3], DataMemInstructions[2], DataMemInstructions[1]);
     end
 
+
+    // initial begin
+    //     $monitor("PC: %d | nPC: %d | TIME: %d | R5: %d | a: %d | b: %d | ALU-OUT: %d | PA_Forward: %b | R: %d | IS: %b ||| PA: %d | ALU-OUT: %d | MEM_OUT: %d | WB_OUT: %d | ", PC, nPC, $time, register_file.Q5, EX_MX1, N, ALU_OUT, forwardMX1, EX_MX2, IS, pa, ALU_OUT, MEM_OUT, WB_OUT);
+    // end
+
+
     // initial  begin
-    //     $monitor("\n\n\nTIME: %d | S: %b\n---------------------------------\
+    //     $monitor("\n\n\nTIME: %d\n---------------------------------\
     //     \nPC: %d | nPC: %d\n--------------------------------------\
     //     \nInstruction at Decode Stage: %b | Signals at Decode Stage:\
     //     \n--------------------------------------------------\
@@ -526,7 +575,7 @@ module sparcV8ArchitectureTester;
     //     \n\Signals at  Writeback Stage:\
     //     \n--------------------------------------------------\
     //     \nRegister File Enable: %b",
-    //     $time, S,
+    //     $time,
         
     //     PC, nPC,
 

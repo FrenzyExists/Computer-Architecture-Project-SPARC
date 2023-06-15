@@ -190,5 +190,6 @@ module alu (
             4'b1110: {carry, y} = b;
             4'b1111: {carry, y} = ~b;
         endcase
+        // $display("ALU INTERNO -> a: %d | b: %d | y: %d", a, b, y);
     end
 endmodule

@@ -18,9 +18,10 @@ module mux_2x1 (
     input S, 
     input[31: 0] I0, I1
 );
-    always @ (S, I0, I1) 
+    always @ (S, I0, I1) begin 
     if (S) Y = I1; 
     else Y = I0; 
+    end
 endmodule
 
 module mux_2x5 (
@@ -50,29 +51,26 @@ module adder32Bit (
     input [31:0] a,
     input [31:0] b
 );
-    always @*
-        out <= a + b;
-endmodule
-
-
-module SignExtender( 
-    output reg [23:0] extended,
-    input wire [21:0] extend,
-    input wire clk
-    );
-
     always @* begin
-        if (clk == 1) extended[23:0] <= { {2{extend[21]}}, extend[21:0] };
-        else extended[21:0] = extend[21:0];
+        out <= a + b;
     end
 endmodule
 
+module SignExtender( 
+    output reg [31:0] extended,
+    input wire [21:0] extend
+    );
+
+    always @* begin
+        extended[31:0] <= { {10{extend[21]}}, extend[21:0] };
+    end
+endmodule
 
 module multiplierBy4 (
     output reg [31:0] multipliedOut,
     input  [31:0]     in
 );
     always @* begin
-        multipliedOut <= in * 32'd4;
+        multipliedOut <= in << 2'b10;
     end
 endmodule

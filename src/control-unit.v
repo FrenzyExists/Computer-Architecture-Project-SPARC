@@ -522,10 +522,10 @@ module control_unit(
 
     assign instr_signals[10]      = CC_Enable;
 
-    assign instr_signals[11]     = I31;
-    assign instr_signals[12]     = I30;
-    assign instr_signals[13]     = I24;
-    assign instr_signals[14]     = I13;
+    assign instr_signals[11]     = I13;
+    assign instr_signals[12]     = I24;
+    assign instr_signals[13]     = I30;
+    assign instr_signals[14]     = I31;
 
     assign instr_signals[18:15]  = ID_ALU_OP_instr;
     assign instr_signals[19]     = ID_branch_instr;

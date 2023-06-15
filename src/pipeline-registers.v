@@ -213,18 +213,20 @@ endmodule
  **************************************************************************/
 module pipeline_EX_MEM (
     input wire clk, clr,
-    input wire [9:0]   EX_control_unit_instr,
-    input wire [31:0]  PC,
-    input wire [4:0]   EX_RD_instr,
-    input wire [31:0]  EX_ALU_OUT,
+    input wire [9:0]    EX_control_unit_instr,
+    input wire [31:0]   PC,
+    input wire [4:0]    EX_RD_instr,
+    input wire [31:0]   EX_ALU_OUT,
+    input wire [31:0]   EX_MX3,
     
-    output reg [31:0] MEM_ALU_OUT,
-    output reg [4:0]  Data_Mem_instructions,
-    output reg [2:0]  Output_Handler_instructions,
-    output reg MEM_control_unit_instr,
-    output reg Store_instr,
-    output reg [31:0] PC_MEM,
-    output reg [4:0]  MEM_RD_instr
+    output reg [31:0]   MEM_ALU_OUT,
+    output reg [4:0]    Data_Mem_instructions,
+    output reg [2:0]    Output_Handler_instructions,
+    output reg          MEM_control_unit_instr,
+    output reg          Store_instr,
+    output reg [31:0]   PC_MEM,
+    output reg [4:0]    MEM_RD_instr,
+    output reg [31:0]   MEM_MX3
 );
     always @(posedge clk) begin
         if (clr) begin
@@ -235,6 +237,7 @@ module pipeline_EX_MEM (
             Store_instr                  <= 1'b0;
             MEM_RD_instr                 <= 5'b0;
             PC_MEM                       <= 32'b0;
+            MEM_MX3                      <= 32'b0;
         end else begin
             MEM_ALU_OUT                  <= EX_ALU_OUT;
             Data_Mem_instructions        <= EX_control_unit_instr[9:5];
@@ -243,6 +246,7 @@ module pipeline_EX_MEM (
             Store_instr                  <= EX_control_unit_instr[3];
             MEM_RD_instr                 <= EX_RD_instr;
             PC_MEM                       <= PC;
+            MEM_MX3                      <= EX_MX3;
         end
     end
 endmodule
@@ -286,9 +290,9 @@ module pipeline_MEM_WB (
     input wire [31:0]  MUX_out,
     input wire         MEM_control_unit_instr,
 
-    output reg [4:0]  WB_RD_instr,
-    output reg [31:0] WB_RD_out,
-    output reg        WB_Register_File_Enable
+    output reg [4:0]   WB_RD_instr,
+    output reg [31:0]  WB_RD_out,
+    output reg         WB_Register_File_Enable
     );
     always@(posedge clk) begin
         if (clr) begin

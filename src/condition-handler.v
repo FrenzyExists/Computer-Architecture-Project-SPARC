@@ -1,5 +1,4 @@
 
-
 module condition_handler (
 input [3:0] flags,
 input [3:0] cond,
@@ -16,10 +15,10 @@ output reg branch_out
 reg Z, N, C, V;
 
 always @(flags) begin
-    Z <= flags[0];
-    N <= flags[1];
-    C <= flags[2];
-    V <= flags[3];
+    Z <= flags[3];
+    N <= flags[2];
+    C <= flags[1];
+    V <= flags[0];
 end
 
 always @* begin
@@ -41,7 +40,6 @@ always @* begin
             4'b1101: branch_out = ~C; // Branch on Carry = 0 - bcc
             4'b1110: branch_out = ~N; // Branch on Positive - bpos
             4'b1111: branch_out = ~V; // Branch overreflow = 0 - bvc
-            default: branch_out = 1'b0; // Catch unexpected values of "cond"
         endcase
     end else branch_out <= 1'b0; // Output 0 when ID_branch_instr is 0
 end
