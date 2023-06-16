@@ -403,7 +403,7 @@ ${reset}
 
 »»» Team Players:
     » ${yellow}Victor Barriera${reset}
-    » ${red}Angel L Garcia${reset}| ${magenta}Detective Pikachu${reset}
+    » ${red}Angel L Garcia${reset} | ${magenta}Detective Pikachu${reset}
     » ${blue}Victor Hernandez${reset}
 
 ${blue}version ${yellow}${version[0]}${magenta}: ${green}${version[1]}${reset}

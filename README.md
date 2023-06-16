@@ -8,7 +8,7 @@ This project is a verilog hardware design of the SPARC V8 architecture. The desi
 
 The design was created as part of a college course in Computer Architecture (ICOM4215) taught by Dr. Nestor J. Rodriguez by a team of three students:
 
-- Detective Pikachu (Angel L Garca)
+- Detective Pikachu (Angel L Garcia)
 - Dinkleberg (Victor Hernandez)
 - The Rat Man (Victor Barriera)
 
