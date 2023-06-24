@@ -211,15 +211,15 @@ module sparcV8ArchitectureTester;
     );
 
 
-    // Precharging the Instruction Memory
+    // Precharging the Instruction Memory and Data Memory
     initial begin
         fi = $fopen("precharge/sparc-instructions-2-precharge.txt","r");
         Addr = 8'b00000000;
-        $display("Precharging Instruction Memory...\n---------------------------------------------\n");
+        // $display("Precharging Instruction Memory...\n---------------------------------------------\n");
         while (!$feof(fi)) begin
-            if (Addr % 4 == 0 && !$feof(fi)) $display("\n\nLoading Next Instruction...\n-------------------------------------------------------------------------");
+            // if (Addr % 4 == 0 && !$feof(fi)) $display("\n\nLoading Next Instruction...\n-------------------------------------------------------------------------");
             code = $fscanf(fi, "%b", data);
-            $display("---- %b ----\n", data);
+            // $display("---- %b ----     Address: %d\n", data, Addr);
             ROM.Mem[Addr] = data;
             RAM.Mem[Addr] = data;
             Addr = Addr + 1;
@@ -314,13 +314,13 @@ module sparcV8ArchitectureTester;
         .cu_in_mux                      (CU_SIG)
     );  
 
-
     reset_handler reset_handler (
-        .reset_out          (reset),
+        .reset_out                  (reset),
 
-        .system_reset       (clr),
-        .ID_branch_instr    (ID_branch_instr),
-        .a                  (I29_branch_instr)
+        .system_reset               (clr),
+        .ID_branch_instr            (ID_branch_instr),
+        .condition_handler_instr    (cond_branch_OUT),
+        .a                          (I29_branch_instr)
     );
 
     // Register File, saves operand and destiny registers
@@ -530,32 +530,35 @@ module sparcV8ArchitectureTester;
         $finish;
     end 
 
-    // initial begin
-    //     $monitor("\n\n\nTIME: %d\n---------------------------------\
-    //     \nPC: %d\n--------------------------------------\
-    //     \nR5: %d | R6: %d\
-    //     \nR16: %d | R17: %d\
-    //     \nR18: %d\
-    //     \n--------------------------------------------------",
-    //     $time,
-    //     PC,
-    //     register_file.Q5, register_file.Q6, register_file.Q16, register_file.Q17, register_file.Q18);
-    // end
-
-    // initial begin
-    //     #90;
-    //     $display("LOC 59", RAM.Mem[59]);
-    // end
+    initial begin
+        $monitor("\n\n\nTIME: %d\n---------------------------------\
+        \nPC: %d\n--------------------------------------\
+        \nR5: %d | R6: %d\
+        \nR16: %d | R17: %d\
+        \nR18: %d\
+        \n--------------------------------------------------",
+        $time,
+        PC,
+        register_file.Q5, register_file.Q6, register_file.Q16, register_file.Q17, register_file.Q18);
+    end
 
     initial begin
-        $monitor("PC: %d | Data: %d | Address: %d | Size: %b | Enable: %b | R/W: %b", PC, MEM_MX3, MEM_ALU_OUT_Address[7:0], DataMemInstructions[4:3], DataMemInstructions[2], DataMemInstructions[1]);
+        #90;
+        $display("---------->>>>>> LOC 59", RAM.Mem[59]);
     end
+
+    // initial begin
+    //     $monitor("PC: %d | Data: %d | Address: %d | Size: %b | Enable: %b | R/W: %b\n\n", PC, MEM_MX3, MEM_ALU_OUT_Address[7:0], DataMemInstructions[4:3], DataMemInstructions[2], DataMemInstructions[1]);
+    // end
 
 
     // initial begin
     //     $monitor("PC: %d | nPC: %d | TIME: %d | R5: %d | a: %d | b: %d | ALU-OUT: %d | PA_Forward: %b | R: %d | IS: %b ||| PA: %d | ALU-OUT: %d | MEM_OUT: %d | WB_OUT: %d | ", PC, nPC, $time, register_file.Q5, EX_MX1, N, ALU_OUT, forwardMX1, EX_MX2, IS, pa, ALU_OUT, MEM_OUT, WB_OUT);
     // end
 
+    // initial begin
+    //     $monitor("PC: %d | forwardMX3: %b | pd: %d | ALU_OUT: %d | MEM_OUT: %d | WB_OUT: %d | ID_MX3: %d | Store_EX: %b ", PC, forwardMX3, pd, ALU_OUT, MEM_OUT, WB_OUT, ID_MX3, ID_CU[3]);
+    // end
 
     // initial  begin
     //     $monitor("\n\n\nTIME: %d\n---------------------------------\

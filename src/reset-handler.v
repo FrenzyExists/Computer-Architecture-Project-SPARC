@@ -26,8 +26,8 @@ module reset_handler (
     input condition_handler_instr,
     output reg reset_out // The thing that triggers reset
 );
-    always @* begin
-        if (system_reset || (ID_branch_instr && a)) begin
+    always @* begin 
+        if (system_reset | ~condition_handler_instr && (ID_branch_instr && a)) begin
             reset_out <= 1'b1;
         end else begin
             reset_out <= 1'b0;

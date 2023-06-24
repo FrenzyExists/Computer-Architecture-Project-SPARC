@@ -3,8 +3,13 @@
   "verilog.languageServer.enabled": true,
   "verilog.ctags.path": "/usr/local/bin/ctags",
   "verilog.linting.modelsim.runAtFileLocation": true,
+  "verilog.linting.iverilog.runAtFileLocation": true,
   "verilog.linting.linter": "iverilog",
   "editor.tabCompletion": "on",
   "terminal.integrated.tabs.enableAnimation": false,
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.autopep8"
+  },
+  "python.formatting.provider": "none"
 }

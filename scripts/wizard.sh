@@ -309,6 +309,7 @@ ${cyan}»» Checking if verilog is installed...${reset}
 
   if ! command -v iverilog &>/dev/null; then
     printf "Icarus Verilog not found. Attempting to install Icarus Verilog..\n"
+    sleep 2
 
     local install_command=""
     local package_manager=""
@@ -332,6 +333,7 @@ ${cyan}»» Checking if verilog is installed...${reset}
 
     if [ -n "$install_command" ]; then
       printf "Installing Icarus Verilog using $package_manager\n"
+      sleep 2
       "${install_command}"
     else
       printf "Couldn't find a suitable package manager. Attempting to install from source...\n"
@@ -350,12 +352,15 @@ ${cyan}»» Checking if verilog is installed...${reset}
         make &
 
         printf "Icarus is succesfully installed!\n"
+        sleep 2
       else
         printf "Git is not installed, get git, fr\n"
+        sleep 2
         exit 1
       fi
 
       printf "Error: Icarus Verilog is not installed and package manager not found\n"
+      sleep 2
       exit 1
     fi
   else
@@ -366,6 +371,18 @@ ${cyan}»» Checking if verilog is installed...${reset}
 
 fault() {
   printf "Option not implemented, need to work on cocotb files first\n"
+
+  pyversion=$(python -v)
+
+  if pyversion -eq "" ; then
+    printf "python is not installed!"
+  fi
+
+  if ! where python cocotb -v ; then
+    printf "cocotb is not installed!"
+  fi
+
+  
 }
 
 timing() {
@@ -491,7 +508,8 @@ select_options() {
 if ! command -v iverilog &>/dev/null 2>&1; then
   printf "\n${red}Icarus Verilog${reset} not found. You should run the script with the doctor to get the prob fixed.\n"
   sleep 1
-  exit
+  welcome
+  # exit
 else
   welcome
 fi

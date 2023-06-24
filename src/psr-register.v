@@ -27,6 +27,6 @@ module psr_register (
 always @ (posedge clk)
     if (enable) begin
         out <= flags;
-        carry <= flags[2];
+        carry <= flags[1];
     end
 endmodule

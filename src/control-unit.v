@@ -324,7 +324,7 @@ module control_unit(
                                 // Store Mode (mem is set to write mode)
                                 ID_load_instr               <= 1'b0;
                                 // Ask
-                                ID_store_instr              <= 1'b0;
+                                ID_store_instr              <= 1'b1;
 
                                 ID_data_mem_RW              <= 1'b1;
                                 ID_register_file_Enable     <= 1'b0;
@@ -366,7 +366,7 @@ module control_unit(
                                 ID_jmpl_instr               <= 1'b0;
                                 ID_load_instr               <= 1'b0;
                                 // Ask
-                                ID_store_instr              <= 1'b1;
+                                ID_store_instr              <= 1'b0;
 
                                 ID_register_file_Enable     <= 1'b1;
                                 ID_ALU_OP_instr             <= 4'b0000;
@@ -496,7 +496,7 @@ module control_unit(
                                 ID_branch_instr             <= 1'b0;
                                 ID_load_instr               <= 1'b0;
                                 // Ask
-                                ID_store_instr              <= 1'b1;
+                                ID_store_instr              <= 1'b0;
 
                                 ID_data_mem_SE              <= 1'b0;
                                 // ID_data_mem_RW              <= 1'b1;

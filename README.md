@@ -51,6 +51,32 @@ You'll get something like this:
 
 The SPARC V8 verilog hardware design includes the following components:
 
+### Components
+
+#### IF Stage
+
+- [PC and nPC]
+- [Instruction Memory]
+- [PC and nPC Handler]
+- [IF/ID Pipeline Register]
+
+#### ID Stage
+
+- [Target Address Calculation]
+- [Register File]
+- [Reset Handler]
+- [Multiplexers after the Register File]
+- [Control Unit]
+- [Control Unit Multiplexer]
+- [ID/EX Pipeline Register]
+
+#### EX Stage
+-0
+#### MEM Stage
+
+#### WB 
+
+
 - [ALU](/documentation/alu.md)
 - [Operand2 Handler](/documentation/operand-handler.md)
 - [Instruction Memory](/documentation/instruction-memory.md)
