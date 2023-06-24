@@ -94,7 +94,7 @@ The SPARC V8 verilog hardware design includes the following components:
 
 ## PPU Diagram
 
-![DEEZ NUTZ](/assets/sparc-v8-pipeline-processing-unit-diagram-Angel-Garcia-Victor-Blue-Victor-Barriera.jpg)
+![DEEZ NUTZ](/assets/sparc-v8-pipeline-processing-unit-diagram-Angel-Garcia-Victor-Blue-Victor-Barriera.png)
 
 
 ## Optional Stuff for Fun
